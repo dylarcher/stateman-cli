@@ -9,7 +9,7 @@ body:
         Thanks for taking the time to fill out this bug report!
 
         Please check our documentation first:
-        - [Security Policy](.github/SECURITY.md) (for security vulnerabilities)
+        - [Security Policy](/SECURITY.md) (for security vulnerabilities)
         - [Changelog](.github/CHANGELOG.md) (to see if this has been fixed in a newer version)
 
   - type: textarea
