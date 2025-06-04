@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>stateman-cli - Architectural Deep Dive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs'
+        window.mermaid = mermaid // Make it globally available
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&family=Nunito+Sans:wght@400;600;700&family=Oswald:wght@400;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <!-- Chosen Palette: Dynamically chosen based on light/dark mode. Uses OKLCH with fallbacks. -->
+    <!-- Application Structure Plan: A multi-section, non-linear dashboard design. It starts with a high-level overview, then allows users to explore specific areas: a comparative 'Core Architecture' section with tabs, an interactive 'API Deep Dive' with clickable elements and a chart, and a visual 'Roadmap' timeline. This structure was chosen to break down dense technical information into digestible, user-driven sections, promoting exploration and understanding over passive reading. It prioritizes comparing concepts (Global vs. Scoped) and visualizing relationships (the Bridge, API sources) to make the architecture more accessible. Gemini API features added for concept explanation and use case suggestions, with user-provided API key input and management, persisted in localStorage. Light/Dark mode with WCAG AA OKLCH colors and font size toggle implemented. Tooltips are now static and viewport-aware. GitHub link added. ARIA attributes added for enhanced accessibility. Keyboard shortcuts and copy-anchor-link feature added. Code styling, chart bar thickness, and rounded corners updated. Typography updated for headings, body, and code. UI adjustments for buttons, tooltips, legend, chart border, anchor links, fonts, keymap, link text, and interaction indicators. API section now uses CSS masonry. Further UI refinements: H3-H6 font, interactive legend/chart hover, tooltip alignment. Console error fix for scrollspy. Conceptual flows updated to use Mermaid.js. Mermaid parsing error fixed. -->
+    <!-- Visualization & Content Choices:
+        - Report Info: Core Pillars. Goal: Inform. Viz: Card layout. Interaction: None. Justification: Clear, scannable intro.
+        - Report Info: Global vs. Scoped Stores. Goal: Compare. Viz: Tabbed interface with Mermaid flowcharts. Interaction: Click tabs to switch content. Gemini button to suggest use cases. Justification: Enables direct comparison and deeper understanding.
+        - Report Info: Bridge between stores. Goal: Show Relationships. Viz: HTML/CSS diagram. Interaction: Hover/Focus for static, viewport-aware tooltips. Justification: Visually simplifies a core architectural concept.
+        - Report Info: API Mapping Table. Goal: Compare. Viz: Horizontal Bar Chart (Chart.js). Interaction: Tooltips (static, average position, left-aligned) on bars, interactive legend. Gemini button on cards to explain concepts. Justification: Turns a dense table into a quick, impactful visual with on-demand explanations.
+        - Report Info: Future Roadmap. Goal: Show Process/Change. Viz: Clickable vertical timeline. Interaction: Click to expand details. Justification: More engaging than a list.
+        - All choices use Vanilla JS, Tailwind CSS, or Chart.js (Canvas), adhering to the NO SVG/Mermaid constraint for other diagrams. -->
+    <!-- CONFIRMATION: NO SVG graphics used. Mermaid JS used ONLY for conceptual flow diagrams as requested. -->
+    <style>
+        :root {
+            /* Light Mode Colors (OKLCH with HEX fallbacks) */
+            --theme-bg: oklch(0.98 0.005 240 / 1);
+            /* Fallback: #f7f7f8 */
+            --theme-text-primary: oklch(0.20 0.015 240 / 1);
+            /* Fallback: #2a2c2e */
+            --theme-text-secondary: oklch(0.45 0.015 240 / 1);
+            /* Fallback: #6c757d */
+            --theme-surface: oklch(1 0 0 / 1);
+            /* Fallback: #ffffff */
+            --theme-border: oklch(0.90 0.005 240 / 1);
+            /* Fallback: #e0e0e0 */
+            --theme-accent-primary: oklch(0.55 0.23 255 / 1);
+            /* Fallback: #0d6efd */
+            --theme-accent-primary-hover: oklch(0.50 0.24 255 / 1);
+            /* Fallback: #0b5ed7 */
+            --theme-accent-secondary: oklch(0.60 0.21 285 / 1);
+            /* Fallback: #6f42c1 */
+            --theme-accent-secondary-hover: oklch(0.55 0.22 285 / 1);
+            /* Fallback: #59359a */
+            --theme-text-on-accent: oklch(1 0 0 / 1);
+            /* Fallback: #ffffff */
+            --theme-gemini-output-bg: oklch(0.95 0.05 260 / 1);
+            /* Fallback: #eef2ff */
+            --theme-gemini-output-border: oklch(0.65 0.15 260 / 1);
+            /* Fallback: #6366f1 */
+            --theme-success: oklch(0.65 0.18 150 / 1);
+            /* Fallback: #198754 */
+            --theme-danger: oklch(0.60 0.25 25 / 1);
+            /* Fallback: #dc3545 */
+            --theme-warning: oklch(0.80 0.20 80 / 1);
+            /* Fallback: #ffc107 */
+            --theme-info: oklch(0.75 0.15 220 / 1);
+            /* Fallback: #0dcaf0 */
+            --theme-code-bg: oklch(0.94 0.01 240 / 1);
+            /* Fallback: #f0f0f0 */
+            --theme-code-text: oklch(0.35 0.18 300 / 1);
+            /* Fallback: #502477 */
+
+
+            --chart-grid-color: oklch(0.2 0.01 240 / 0.1);
+            /* Fallback: rgba(0,0,0,0.1) */
+            --chart-tick-color: oklch(0.45 0.015 240 / 1);
+            /* Fallback: #6c757d */
+            --chart-tooltip-bg: oklch(0.2 0.015 240 / 0.9);
+            /* Fallback: rgba(0,0,0,0.9) */
+            --chart-tooltip-text: oklch(1 0 0 / 1);
+            /* Fallback: #ffffff */
+            --chart-color-1: oklch(0.55 0.23 255 / 1);
+            /* Redux - Full opacity for legend */
+            /* Fallback: #0d6efd */
+            --chart-color-2: oklch(0.65 0.18 150 / 1);
+            /* VanJS */
+            /* Fallback: #198754 */
+            --chart-color-3: oklch(0.80 0.20 80 / 1);
+            /* Immutable.js */
+            /* Fallback: #ffc107 */
+            --chart-color-4: oklch(0.60 0.21 285 / 1);
+            /* React-Redux */
+            /* Fallback: #6f42c1 */
+            --chart-color-default-bar: oklch(0.55 0.23 255 / 0.7);
+            /* Redux bar */
+        }
+
+        [data-theme="dark"] {
+            --theme-bg: oklch(0.15 0.01 240 / 1);
+            /* Fallback: #1f2022 */
+            --theme-text-primary: oklch(0.90 0.005 240 / 1);
+            /* Fallback: #e0e1e2 */
+            --theme-text-secondary: oklch(0.65 0.01 240 / 1);
+            /* Fallback: #adb5bd */
+            --theme-surface: oklch(0.20 0.015 240 / 1);
+            /* Fallback: #2a2c2e */
+            --theme-border: oklch(0.35 0.015 240 / 1);
+            /* Fallback: #495057 */
+            --theme-accent-primary: oklch(0.65 0.25 255 / 1);
+            /* Fallback: #589bf0 */
+            --theme-accent-primary-hover: oklch(0.70 0.26 255 / 1);
+            /* Fallback: #7aaef3 */
+            --theme-accent-secondary: oklch(0.70 0.23 285 / 1);
+            /* Fallback: #9370db */
+            --theme-accent-secondary-hover: oklch(0.75 0.24 285 / 1);
+            /* Fallback: #a480e2 */
+            --theme-text-on-accent: oklch(0.15 0.01 240 / 1);
+            /* Fallback: #1f2022 */
+            --theme-gemini-output-bg: oklch(0.25 0.05 260 / 1);
+            /* Fallback: #30336b */
+            --theme-gemini-output-border: oklch(0.70 0.15 260 / 1);
+            /* Fallback: #8c9eff */
+            --theme-success: oklch(0.70 0.20 150 / 1);
+            /* Fallback: #20c997 */
+            --theme-danger: oklch(0.65 0.27 25 / 1);
+            /* Fallback: #ff6b81 */
+            --theme-warning: oklch(0.85 0.22 80 / 1);
+            /* Fallback: #ffca2c */
+            --theme-info: oklch(0.80 0.17 220 / 1);
+            /* Fallback: #3dd5f3 */
+            --theme-code-bg: oklch(0.25 0.015 240 / 1);
+            /* Fallback: #333538 */
+            --theme-code-text: oklch(0.75 0.15 280 / 1);
+            /* Fallback: #b5a1e0 */
+
+
+            --chart-grid-color: oklch(0.9 0.005 240 / 0.1);
+            /* Fallback: rgba(255,255,255,0.1) */
+            --chart-tick-color: oklch(0.65 0.01 240 / 1);
+            /* Fallback: #adb5bd */
+            --chart-tooltip-bg: oklch(0.9 0.005 240 / 0.9);
+            /* Fallback: rgba(255,255,255,0.9) */
+            --chart-tooltip-text: oklch(0.15 0.01 240 / 1);
+            /* Fallback: #1f2022 */
+            --chart-color-1: oklch(0.65 0.25 255 / 1);
+            /* Redux */
+            /* Fallback: #589bf0 */
+            --chart-color-2: oklch(0.70 0.20 150 / 1);
+            /* VanJS */
+            /* Fallback: #20c997 */
+            --chart-color-3: oklch(0.85 0.22 80 / 1);
+            /* Immutable.js */
+            /* Fallback: #ffca2c */
+            --chart-color-4: oklch(0.75 0.24 285 / 1);
+            /* React-Redux */
+            /* Fallback: #a480e2 */
+            --chart-color-default-bar: oklch(0.65 0.25 255 / 0.7);
+            /* Redux bar */
+        }
+
+        html:not([data-font-size]),
+        html[data-font-size="md"] {
+            font-size: 1rem;
+        }
+
+        /* 16px */
+        html[data-font-size="sm"] {
+            font-size: 0.875rem;
+        }
+
+        /* 14px */
+        html[data-font-size="lg"] {
+            font-size: 1.125rem;
+        }
+
+        /* 18px */
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            /* Super legible sans-serif for body */
+            background-color: var(--theme-bg);
+            color: var(--theme-text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1,
+        h2 {
+            /* Large headings */
+            font-family: 'Merriweather', serif;
+            font-weight: 300;
+            /* Light weight for Merriweather */
+        }
+
+        h3,
+        h4,
+        h5,
+        h6 {
+            /* Smaller headings */
+            font-family: 'Nunito Sans', sans-serif;
+        }
+
+        .timeline-item-trigger h3 {
+            font-family: 'Nunito Sans', sans-serif;
+        }
+
+        .api-card h4 {
+            font-family: 'Nunito Sans', sans-serif;
+        }
+
+
+        code,
+        kbd,
+        .code-like {
+            font-family: 'Roboto Mono', monospace;
+            /* Mono slab for code */
+            background-color: var(--theme-code-bg);
+            color: var(--theme-code-text);
+            padding: 0.125em 0.3em;
+            /* em for scaling with font size */
+            border-radius: 0.375rem;
+            /* Increased rounding */
+            font-size: 0.9em;
+            /* Slightly smaller than surrounding text */
+        }
+
+        .timeline-item-trigger h1,
+        .shortcut-key {
+            /* For phase numbers in timeline & shortcut keys */
+            font-family: 'Roboto Mono', monospace;
+            line-height: 1;
+            /* Centered line height */
+        }
+
+        .container {
+            width: 100%;
+            padding-left: 1rem;
+            /* px-4 */
+            padding-right: 1rem;
+            /* px-4 */
+            margin-left: auto;
+            /* Re-added for centering */
+            margin-right: auto;
+            /* Re-added for centering */
+        }
+
+        @media (min-width: 640px) {
+
+            /* sm */
+            .container {
+                max-width: 640px;
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+
+            /* md */
+            .container {
+                max-width: 768px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+
+            /* lg */
+            .container {
+                max-width: 1024px;
+                padding-left: 2rem;
+                padding-right: 2rem;
+            }
+        }
+
+        @media (min-width: 1280px) {
+
+            /* xl */
+            .container {
+                max-width: 1280px;
+            }
+        }
+
+
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            padding-bottom: 4px;
+            color: var(--theme-text-secondary);
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            /* px-3 */
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            /* py-2 */
+            border-radius: 0.5rem;
+            /* rounded-lg */
+            font-size: 0.875rem;
+            /* text-sm */
+            font-weight: 500;
+            /* font-medium */
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            color: var(--theme-accent-primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            top: calc(100% + 1em);
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--theme-accent-primary);
+            transition: width 0.3s ease-in-out;
+        }
+
+        .nav-link.active::after,
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .tab {
+            color: var(--theme-text-secondary);
+            border-bottom: 2px solid transparent;
+            border-radius: 0.5rem 0.5rem 0 0;
+            /* Rounded top corners */
+            font-size: 1.125rem;
+            /* text-lg */
+            font-weight: 500;
+            /* font-medium */
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            /* px-6 */
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            /* py-3 */
+        }
+
+        .tab.active {
+            border-color: var(--theme-accent-primary);
+            background-color: color-mix(in srgb, var(--theme-accent-primary) 15%, transparent);
+            color: var(--theme-accent-primary);
+        }
+
+        .tab:hover {
+            background-color: color-mix(in srgb, var(--theme-accent-primary) 10%, transparent);
+        }
+
+        /* Masonry for API cards */
+        #api-methods {
+            column-count: 1;
+            column-gap: 1.5rem;
+            /* Equivalent to gap-6 */
+        }
+
+        @media (min-width: 768px) {
+
+            /* md breakpoint */
+            #api-methods {
+                column-count: 2;
+            }
+        }
+
+        @media (min-width: 1024px) {
+
+            /* lg breakpoint */
+            #api-methods {
+                column-count: 3;
+            }
+        }
+
+        .api-card {
+            break-inside: avoid-column;
+            /* Prevent cards from breaking across columns */
+            margin-bottom: 1.5rem;
+            /* Add space below cards in column layout */
+            transition: all 0.3s ease-in-out;
+            transform: perspective(1000px);
+            background-color: var(--theme-surface);
+            border: 1px solid var(--theme-border);
+            border-radius: 0.75rem;
+            /* Increased rounding */
+            padding: 1.5rem;
+            /* p-6 */
+        }
+
+
+        .api-card:hover {
+            transform: translateY(-5px) translateZ(20px);
+            box-shadow: 0 10px 20px color-mix(in srgb, var(--theme-text-primary) 10%, transparent);
+        }
+
+        .timeline-item-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+        }
+
+        .timeline-item.open .timeline-item-content {
+            max-height: 500px;
+        }
+
+        .connector-line {
+            position: relative;
+            transition: background-color 0.3s ease;
+            background-color: var(--theme-border);
+            outline: none;
+            /* For focus */
+        }
+
+        .connector-line:focus .tooltip,
+        .connector-line:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .connector-line .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+            background-color: var(--theme-text-primary);
+            color: var(--theme-bg);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            /* Increased rounding */
+            white-space: nowrap;
+            z-index: 10;
+            box-shadow: 0 2px 5px color-mix(in srgb, var(--theme-text-primary) 20%, transparent);
+        }
+
+        .tooltip-top {
+            position: absolute;
+            bottom: calc(100% + 5px);
+            /* Position above */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .tooltip-bottom {
+            position: absolute;
+            top: calc(100% + 5px);
+            /* Position below */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+        }
+
+        .chart-container canvas {
+            outline: none;
+            /* For focus if Chart.js makes it focusable */
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+
+        .gemini-output {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--theme-gemini-output-bg);
+            border-left: 4px solid var(--theme-gemini-output-border);
+            border-radius: 0.5rem;
+            /* Increased rounding */
+            font-size: 0.9em;
+            /* Relative to parent */
+            line-height: 1.6;
+            word-wrap: break-word;
+            color: var(--theme-text-primary);
+        }
+
+        .loading-spinner {
+            border: 4px solid color-mix(in srgb, var(--theme-accent-primary) 20%, transparent);
+            width: 1.5em;
+            /* Relative to parent */
+            height: 1.5em;
+            /* Relative to parent */
+            border-radius: 50%;
+            border-left-color: var(--theme-accent-primary);
+            animation: spin 1s ease infinite;
+            display: inline-block;
+            margin-right: 0.5em;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .gemini-button {
+            background-color: var(--theme-accent-secondary);
+            color: var(--theme-text-on-accent);
+            padding: 0.5em 1em;
+            /* Relative padding */
+            border-radius: 0.5rem;
+            /* Increased rounding */
+            font-weight: 500;
+            font-size: 0.875em;
+            /* Relative font size */
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .gemini-button:hover {
+            background-color: var(--theme-accent-secondary-hover);
+        }
+
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: color-mix(in srgb, var(--theme-text-primary) 50%, transparent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: var(--theme-surface);
+            color: var(--theme-text-primary);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            /* Increased rounding */
+            box-shadow: 0 10px 25px color-mix(in srgb, var(--theme-text-primary) 10%, transparent);
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.95);
+            transition: transform 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .modal-overlay.open .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-closing .modal-content {
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease-out !important;
+            opacity: 1;
+        }
+
+        .theme-toggle-button,
+        .font-size-button,
+        .keymap-button {
+            background: none;
+            border: none;
+            color: var(--theme-text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            /* Increased rounding */
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .theme-toggle-button,
+        .keymap-button {
+            font-size: 1.5rem;
+        }
+
+        .theme-toggle-button:hover,
+        .font-size-button:hover,
+        .keymap-button:hover {
+            color: var(--theme-accent-primary);
+            background-color: color-mix(in srgb, var(--theme-accent-primary) 10%, transparent);
+        }
+
+        .font-size-button.active {
+            background-color: var(--theme-accent-primary);
+            color: var(--theme-text-on-accent);
+        }
+
+        .font-size-button:focus,
+        .theme-toggle-button:focus,
+        .keymap-button:focus {
+            outline: 2px solid var(--theme-accent-primary);
+            outline-offset: 2px;
+        }
+
+        .header-bg {
+            background-color: color-mix(in srgb, var(--theme-surface) 80%, transparent);
+        }
+
+        .footer-bg {
+            background-color: var(--theme-text-primary);
+            color: var(--theme-bg);
+        }
+
+        .footer-text-secondary {
+            color: color-mix(in srgb, var(--theme-bg) 70%, transparent);
+        }
+
+        .section-bg-alt {
+            background-color: color-mix(in srgb, var(--theme-surface) 95%, var(--theme-bg));
+        }
+
+        .section-bg-primary {
+            background-color: var(--theme-surface);
+        }
+
+        .primary-button {
+            background-color: var(--theme-accent-primary);
+            color: var(--theme-text-on-accent);
+            border-radius: 0.5rem;
+            /* Increased rounding */
+        }
+
+        .primary-button:hover {
+            background-color: var(--theme-accent-primary-hover);
+        }
+
+        .secondary-button {
+            background-color: var(--theme-surface);
+            color: var(--theme-text-primary);
+            border: 1px solid var(--theme-border);
+            border-radius: 0.5rem;
+            /* Increased rounding */
+        }
+
+        .secondary-button:hover {
+            background-color: color-mix(in srgb, var(--theme-border) 50%, var(--theme-surface));
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            background-color: var(--theme-surface);
+            border-color: var(--theme-border);
+            color: var(--theme-text-primary);
+            border-radius: 0.5rem;
+            /* Increased rounding */
+        }
+
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            border-color: var(--theme-accent-primary);
+            box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-accent-primary) 25%, transparent);
+        }
+
+        .text-accent {
+            color: var(--theme-accent-primary);
+        }
+
+        .text-accent-secondary {
+            color: var(--theme-accent-secondary);
+        }
+
+        .text-success {
+            color: var(--theme-success);
+        }
+
+        .text-danger {
+            color: var(--theme-danger);
+        }
+
+        .bg-accent-subtle {
+            background-color: color-mix(in srgb, var(--theme-accent-primary) 15%, transparent);
+            border-radius: 0.5rem;
+            /* Increased rounding */
+        }
+
+        .border-strong {
+            border-color: var(--theme-text-primary);
+        }
+
+        .border-subtle {
+            border-color: var(--theme-border);
+        }
+
+        .shadow-themed {
+            box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--theme-text-primary) 10%, transparent), 0 2px 4px -2px color-mix(in srgb, var(--theme-text-primary) 10%, transparent);
+        }
+
+        .shortcut-key {
+            margin-left: 0.25rem;
+            padding: 0.125rem 0.375rem;
+            font-size: 0.75em;
+            /* Relative to parent nav-link */
+            font-family: 'Roboto Mono', monospace;
+            /* Consistent font for shortcuts */
+            border: 1px solid var(--theme-border);
+            border-radius: 0.375rem;
+            /* Increased rounding */
+            background-color: var(--theme-surface);
+            color: var(--theme-text-secondary);
+            box-shadow: 0 1px 1px color-mix(in srgb, var(--theme-text-primary) 10%, transparent);
+        }
+
+        .copy-anchor-link {
+            margin-right: 0.5rem;
+            /* Moved to left, so margin is on the right */
+            color: var(--theme-text-secondary);
+            text-decoration: none;
+            font-weight: bold;
+            opacity: 0.5;
+            transition: opacity 0.2s ease;
+        }
+
+        .copy-anchor-link:hover,
+        .copy-anchor-link:focus {
+            color: var(--theme-accent-primary);
+            opacity: 1;
+            outline: none;
+        }
+
+        .copy-feedback {
+            font-size: 0.8em;
+            color: var(--theme-success);
+            margin-left: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .copy-feedback.visible {
+            opacity: 1;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            font-size: 0.875em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: opacity 0.2s ease-in-out;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+        }
+
+        .legend-item:hover,
+        .legend-item:focus {
+            background-color: color-mix(in srgb, var(--theme-accent-primary) 10%, transparent);
+        }
+
+        .legend-item.dimmed {
+            opacity: 0.35;
+            /* Less dramatic grey-out */
+        }
+
+        .legend-color-box {
+            width: 1em;
+            height: 1em;
+            border-radius: 0.25rem;
+        }
+
+        .nav-link,
+        .gemini-button,
+        .tab,
+        .timeline-item-trigger,
+        .font-size-button,
+        .theme-toggle-button,
+        .keymap-button {
+            position: relative;
+            /* For indicator positioning */
+        }
+
+        .mermaid-flow-container {
+            background-color: var(--theme-surface);
+            padding: 1.5rem;
+            /* p-6 */
+            border-radius: 0.75rem;
+            /* rounded-xl */
+            box-shadow: var(--tw-shadow, 0 0 #0000), var(--tw-shadow-colored, 0 0 #0000);
+            /* shadow-themed equivalent */
+            border: 1px solid var(--theme-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            /* Ensure container has some height */
+        }
+
+        .mermaid {
+            font-family: 'Roboto Mono', monospace !important;
+            /* Ensure Mermaid uses code font */
+            text-align: center;
+            /* Center the diagram if it's smaller than container */
+        }
+
+        .gemini-ai-symbol {
+            font-size: 1.5em;
+            color: var(--theme-accent-secondary);
+            margin-right: 0.5em;
+            line-height: 1.28;
+            vertical-align: middle;
+        }
+
+        header button .gemini-ai-symbol,
+        header :any-link .gemini-ai-symbol {
+            color: var(--theme-accent-secondary);
+        }
+
+        button .gemini-ai-symbol,
+        :any-link .gemini-ai-symbol {
+            color: #fff;
+        }
+
+        #rememberApiKeyCheckbox {
+            width: max-content;
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <header class="header-bg backdrop-blur-md sticky top-0 z-50 border-b border-[var(--theme-border)]">
+        <nav role="navigation" aria-label="Main Navigation" class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-center justify-between h-16">
+                <div class="flex items-left space-x-2">
+                    <button id="keymap-button" class="keymap-button mr-2" aria-label="Open Keyboard Shortcuts (Alt + M)"
+                        title="Keyboard Shortcuts (Alt + M)">⌨️ <kbd class="shortcut-key"
+                            aria-hidden="true">M</kbd></button>
+                    <div class="flex-shrink-0 mt-3">
+                        <h1 class="text-xl font-bold text-[var(--theme-text-primary)]">stateman-cli</h1>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center justify-center space-x-1">
+                    <a href="#overview" id="overview-link"
+                        class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Overview <kbd class="shortcut-key"
+                            aria-hidden="true">O</kbd></a>
+                    <a href="#architecture" id="architecture-link"
+                        class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Architecture <kbd class="shortcut-key"
+                            aria-hidden="true">A</kbd></a>
+                    <a href="#api" id="api-link" class="nav-link px-3 py-2 rounded-lg text-sm font-medium">API <kbd
+                            class="shortcut-key" aria-hidden="true">D</kbd></a>
+                    <a href="#roadmap" id="roadmap-link"
+                        class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Roadmap <kbd class="shortcut-key"
+                            aria-hidden="true">R</kbd></a>
+                    <a href="https://github.com/dylarcher/stateman-cli" target="_blank" rel="noopener noreferrer"
+                        class="px-3 py-2 rounded-lg text-2xl font-medium"
+                        aria-label="GitHub Repository (opens in new tab)"><svg height="16" fill="none" width="16"
+                            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0"
+                            viewBox="0 0 97.6 96" style="enable-background:new 0 0 97.6 96;" xml:space="preserve"
+                            role="img" aria-hidden="true">
+                            <style type="text/css">
+                                path {
+                                    fill: var(--theme-text-secondary);
+                                }
+
+                                a:hover path {
+                                    fill: var(--theme-accent-primary);
+                                }
+                            </style>
+                            <path d="
+                                M48.9,0C21.8,0,0,22,0,49.2C0,71,14,89.4,33.4,95.9c2.4,0.5,3.3-1.1,3.3-2.4c0-1.1-0.1-5.1-0.1-9.1
+                                c-13.6,2.9-16.4-5.9-16.4-5.9c-2.2-5.7-5.4-7.2-5.4-7.2c-4.4-3,0.3-3,0.3-3c4.9,0.3,7.5,5.1,7.5,5.1c4.4,7.5,11.4,5.4,14.2,4.1
+                                c0.4-3.2,1.7-5.4,3.1-6.6c-10.8-1.1-22.2-5.4-22.2-24.3c0-5.4,1.9-9.8,5-13.2c-0.5-1.2-2.2-6.3,0.5-13c0,0,4.1-1.3,13.4,5.1
+                                c3.9-1.1,8.1-1.6,12.2-1.6s8.3,0.6,12.2,1.6c9.3-6.4,13.4-5.1,13.4-5.1c2.7,6.8,1,11.8,0.5,13c3.2,3.4,5,7.8,5,13.2
+                                c0,18.9-11.4,23.1-22.3,24.3c1.8,1.5,3.3,4.5,3.3,9.1c0,6.6-0.1,11.9-0.1,13.5c0,1.3,0.9,2.9,3.3,2.4C83.6,89.4,97.6,71,97.6,49.2
+                                C97.7,22,75.8,0,48.9,0z" />
+                        </svg></a>
+                    <button id="nav-api-key-button" class="px-3 py-2 rounded-lg text-sm font-medium"><span
+                            class="gemini-ai-symbol">✦</span> <kbd class="shortcut-key"
+                            aria-hidden="true">K</kbd></button>
+                    <div id="font-size-toggle-desktop" role="group" aria-label="Font Size Control"
+                        class="flex items-center rounded-lg ml-2">
+                        <button data-size="sm" class="font-size-button px-2 py-1 text-xs rounded-l-lg"
+                            aria-label="Set small font size">A</button>
+                        <button data-size="md"
+                            class="font-size-button px-2 py-1 text-sm border-l border-r border-[var(--theme-border)] rounded-lg"
+                            aria-label="Set medium font size">A</button>
+                        <button data-size="lg" class="font-size-button px-2 py-1 text-base rounded-r-lg"
+                            aria-label="Set large font size">A</button>
+                    </div>
+                    <button id="theme-toggle" class="theme-toggle-button ml-1 rounded-lg"
+                        aria-label="Toggle theme (Alt + T)">
+                        <span class="dark-mode-icon hidden" aria-hidden="true">🌙</span>
+                        <span class="light-mode-icon hidden" aria-hidden="true">☀️</span>
+                        <kbd class="shortcut-key sr-only" aria-hidden="true">T</kbd>
+                    </button>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-keymap-button" class="keymap-button mr-1"
+                        aria-label="Open Keyboard Shortcuts (Alt + M)" title="Keyboard Shortcuts (Alt + M)">⌨️</button>
+                    <a href="https://github.com/dylarcher/stateman-cli" target="_blank" rel="noopener noreferrer"
+                        class="p-1 text-2xl rounded-lg" aria-label="GitHub Repository (opens in new tab)"><svg
+                            height="16" fill="none" width="16" xmlns="http://www.w3.org/2000/svg"
+                            xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" viewBox="0 0 97.6 96"
+                            style="enable-background:new 0 0 97.6 96;" xml:space="preserve" role="img"
+                            aria-hidden="true">
+                            <style type="text/css">
+                                path {
+                                    fill: var(--theme-text-secondary);
+                                }
+
+                                a:hover path {
+                                    fill: var(--theme-accent-primary);
+                                }
+                            </style>
+                            <path d="
+                                M48.9,0C21.8,0,0,22,0,49.2C0,71,14,89.4,33.4,95.9c2.4,0.5,3.3-1.1,3.3-2.4c0-1.1-0.1-5.1-0.1-9.1
+                                c-13.6,2.9-16.4-5.9-16.4-5.9c-2.2-5.7-5.4-7.2-5.4-7.2c-4.4-3,0.3-3,0.3-3c4.9,0.3,7.5,5.1,7.5,5.1c4.4,7.5,11.4,5.4,14.2,4.1
+                                c0.4-3.2,1.7-5.4,3.1-6.6c-10.8-1.1-22.2-5.4-22.2-24.3c0-5.4,1.9-9.8,5-13.2c-0.5-1.2-2.2-6.3,0.5-13c0,0,4.1-1.3,13.4,5.1
+                                c3.9-1.1,8.1-1.6,12.2-1.6s8.3,0.6,12.2,1.6c9.3-6.4,13.4-5.1,13.4-5.1c2.7,6.8,1,11.8,0.5,13c3.2,3.4,5,7.8,5,13.2
+                                c0,18.9-11.4,23.1-22.3,24.3c1.8,1.5,3.3,4.5,3.3,9.1c0,6.6-0.1,11.9-0.1,13.5c0,1.3,0.9,2.9,3.3,2.4C83.6,89.4,97.6,71,97.6,49.2
+                                C97.7,22,75.8,0,48.9,0z" />
+                        </svg></a>
+                    <button id="mobile-nav-api-key-button" class="p-1 text-xl rounded-lg ml-1"
+                        aria-label="API Key Settings (Alt + K)"><span class="gemini-ai-symbol">✦</span> </button>
+                    <div id="font-size-toggle-mobile" role="group" aria-label="Font Size Control"
+                        class="flex items-center border border-[var(--theme-border)] rounded-lg ml-2">
+                        <button data-size="sm" class="font-size-button px-1.5 py-0.5 text-xs rounded-l-lg"
+                            aria-label="Set small font size">A</button>
+                        <button data-size="md"
+                            class="font-size-button px-1.5 py-0.5 text-sm border-l border-r border-[var(--theme-border)] rounded-lg"
+                            aria-label="Set medium font size">A</button>
+                        <button data-size="lg" class="font-size-button px-1.5 py-0.5 text-base rounded-r-lg"
+                            aria-label="Set large font size">A</button>
+                    </div>
+                    <button id="mobile-theme-toggle" class="theme-toggle-button ml-1 rounded-lg"
+                        aria-label="Toggle theme (Alt + T)">
+                        <span class="dark-mode-icon hidden" aria-hidden="true">🌙</span>
+                        <span class="light-mode-icon hidden" aria-hidden="true">☀️</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="overview" role="region" aria-labelledby="overview-heading"
+            class="py-16 md:py-24 section-bg-primary">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 id="overview-heading"
+                    class="text-3xl font-extrabold tracking-tight sm:text-4xl text-[var(--theme-text-primary)]"
+                    tabindex="-1">
+                    <a href="#overview" class="copy-anchor-link" title="Copy link to Overview section"
+                        data-anchor="overview" aria-label="Copy link to Overview section">#</a>
+                    Architecting a Hybrid State Management Library
+                    <span class="copy-feedback" aria-live="polite"></span>
+                </h2>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-[var(--theme-text-secondary)]">
+                    This interactive report explores the architecture for a comprehensive, vanilla JavaScript state
+                    management library. The core strategy is a hybrid approach, leveraging the strengths of
+                    battle-tested dependencies for rapid, robust development, with a long-term vision for a fully
+                    self-reliant solution.
+                </p>
+
+                <div class="mt-12 grid gap-8 md:grid-cols-3">
+                    <div
+                        class="p-8 rounded-xl shadow-themed bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+                        <h3 class="text-lg font-semibold text-[var(--theme-text-primary)]">Dual-Store Architecture</h3>
+                        <p class="mt-2 text-[var(--theme-text-secondary)]">A flexible model featuring a powerful global
+                            store for application-wide state and lightweight scoped states for localized,
+                            component-level logic.</p>
+                    </div>
+                    <div
+                        class="p-8 rounded-xl shadow-themed bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+                        <h3 class="text-lg font-semibold text-[var(--theme-text-primary)]">Enforced Immutability</h3>
+                        <p class="mt-2 text-[var(--theme-text-secondary)]">Data integrity is paramount. The global store
+                            mandates the use of immutable data structures, preventing side effects and enabling powerful
+                            features.</p>
+                    </div>
+                    <div
+                        class="p-8 rounded-xl shadow-themed bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+                        <h3 class="text-lg font-semibold text-[var(--theme-text-primary)]">Native Enhancement</h3>
+                        <p class="mt-2 text-[var(--theme-text-secondary)]">Designed to augment, not replace, native
+                            platform capabilities like Web Component state and the DOM event model, providing a seamless
+                            developer experience.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" role="region" aria-labelledby="architecture-heading"
+            class="py-16 md:py-24 section-bg-alt">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 id="architecture-heading"
+                        class="text-3xl font-extrabold tracking-tight sm:text-4xl text-[var(--theme-text-primary)]"
+                        tabindex="-1">
+                        <a href="#architecture" class="copy-anchor-link" title="Copy link to Architecture section"
+                            data-anchor="architecture" aria-label="Copy link to Architecture section">#</a>
+                        Core Architecture: A Tale of Two Stores
+                        <span class="copy-feedback" aria-live="polite"></span>
+                    </h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-[var(--theme-text-secondary)]">
+                        The library's power lies in its dual-store model, providing the right tool for every state
+                        management challenge. This section breaks down the two core pillars—the Global Store and Scoped
+                        State—and shows how they connect to form a cohesive system.
+                    </p>
+                </div>
+
+                <div class="mt-12">
+                    <div role="tablist" aria-label="Core Architecture Stores"
+                        class="flex justify-center border-b border-[var(--theme-border)]">
+                        <button role="tab" aria-selected="true" aria-controls="global-content" id="global-tab"
+                            data-tab="global" class="tab active text-lg font-medium px-6 py-3">Global Store</button>
+                        <button role="tab" aria-selected="false" aria-controls="scoped-content" id="scoped-tab"
+                            data-tab="scoped" class="tab text-lg font-medium px-6 py-3">Scoped State</button>
+                    </div>
+                    <div id="architecture-content-panels" class="mt-8">
+                        <div id="global-content" role="tabpanel" aria-labelledby="global-tab" class="tab-content">
+                            <div class="grid md:grid-cols-2 gap-8 items-start">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-[var(--theme-text-primary)]">The Global Store:
+                                        Predictable & Centralized</h3>
+                                    <p class="mt-4 text-[var(--theme-text-secondary)]">Inspired by <span
+                                            class="font-semibold text-[var(--theme-danger)]">Redux</span>, the global
+                                        store acts as the single source of truth for the entire application. It ensures
+                                        that data flow is predictable and changes are traceable through a structured
+                                        action/reducer pattern. This robust foundation is ideal for managing complex,
+                                        shared state and is built for extensibility with middleware and dev tools.</p>
+                                    <ul class="mt-6 space-y-4 text-[var(--theme-text-secondary)]">
+                                        <li class="flex items-start"><span
+                                                class="flex-shrink-0 h-6 w-6 text-[var(--theme-success)]">✓</span><span
+                                                class="ml-3"><strong>Single Source of Truth:</strong> Centralizes
+                                                application state.</span></li>
+                                        <li class="flex items-start"><span
+                                                class="flex-shrink-0 h-6 w-6 text-[var(--theme-success)]">✓</span><span
+                                                class="ml-3"><strong>Immutable State:</strong> Enforced by <span
+                                                    class="font-semibold text-[var(--theme-warning)]">Immutable.js</span>
+                                                for data integrity.</span></li>
+                                        <li class="flex items-start"><span
+                                                class="flex-shrink-0 h-6 w-6 text-[var(--theme-success)]">✓</span><span
+                                                class="ml-3"><strong>Traceable Updates:</strong> All changes occur via
+                                                dispatched actions.</span></li>
+                                    </ul>
+                                    <button data-output-id="global-usecases-output" aria-live="polite"
+                                        class="gemini-button mt-6 suggest-usecases-btn"><span
+                                            class="gemini-ai-symbol">✦</span> Suggest Use Cases</button>
+                                    <div id="global-usecases-output" class="gemini-output hidden" aria-live="polite">
+                                    </div>
+                                </div>
+                                <div class="mermaid-flow-container">
+                                    <pre class="mermaid" aria-label="Global Store Conceptual Flow Diagram"
+                                        id="global-store-flow">
+                                    graph TD
+                                        A["UI Event (e.g., Button Click)"]
+                                        B["store.dispatch(...)"]
+                                        C["Reducer: (state, action) => newState"]
+                                        D["New Immutable State Tree"]
+                                        E["UI Updates (via store.subscribe())"]
+                                        A --> B --> C --> D --> E
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="scoped-content" role="tabpanel" aria-labelledby="scoped-tab"
+                            class="tab-content hidden">
+                            <div class="grid md:grid-cols-2 gap-8 items-start">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-[var(--theme-text-primary)]">Scoped State:
+                                        Reactive & UI-Bound</h3>
+                                    <p class="mt-4 text-[var(--theme-text-secondary)]">Leveraging the minimalism of
+                                        <span class="font-semibold text-[var(--theme-success)]">VanJS</span>, scoped
+                                        states are designed for localized, component-level state. They are lightweight,
+                                        reactive, and bind directly to DOM elements without a virtual DOM. This makes
+                                        them incredibly efficient for managing UI-specific state like input values,
+                                        hover effects, or the open/closed status of a component.
+                                    </p>
+                                    <ul class="mt-6 space-y-4 text-[var(--theme-text-secondary)]">
+                                        <li class="flex items-start"><span
+                                                class="flex-shrink-0 h-6 w-6 text-[var(--theme-success)]">✓</span><span
+                                                class="ml-3"><strong>Lightweight & Performant:</strong> Minimal overhead
+                                                for many instances.</span></li>
+                                        <li class="flex items-start"><span
+                                                class="flex-shrink-0 h-6 w-6 text-[var(--theme-success)]">✓</span><span
+                                                class="ml-3"><strong>Direct DOM Binding:</strong> State changes
+                                                automatically update the UI.</span></li>
+                                        <li class="flex items-start"><span
+                                                class="flex-shrink-0 h-6 w-6 text-[var(--theme-success)]">✓</span><span
+                                                class="ml-3"><strong>Encapsulated:</strong> Naturally isolated within
+                                                the component that creates it.</span></li>
+                                    </ul>
+                                    <button data-output-id="scoped-usecases-output" aria-live="polite"
+                                        class="gemini-button mt-6 suggest-usecases-btn"><span
+                                            class="gemini-ai-symbol">✦</span> Suggest Use Cases</button>
+                                    <div id="scoped-usecases-output" class="gemini-output hidden" aria-live="polite">
+                                    </div>
+                                </div>
+                                <div class="mermaid-flow-container">
+                                    <pre class="mermaid" aria-label="Scoped State Conceptual Flow Diagram"
+                                        id="scoped-state-flow">
+                                    graph TD
+                                        A["Component Initialized"]
+                                        B["createScopedState('World')"]
+                                        C["DOM Element Bound: <br/> &lt;h1&gt;Hello, {name}&lt;/h1&gt;"]
+                                        D["Update state: <br/> name.val = 'Developer'"]
+                                        E["DOM Automatically Updates"]
+                                        A --> B --> C --> D --> E
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-16 pt-12 border-t border-[var(--theme-border)]">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-[var(--theme-text-primary)]">The Bridge: Connecting the
+                            Worlds</h3>
+                        <p class="mt-4 max-w-2xl mx-auto text-lg text-[var(--theme-text-secondary)]">A critical feature
+                            is the seamless bridge, allowing scoped components to safely interact with the global store.
+                            This provides controlled access for reading global data or dispatching global actions
+                            without creating tight coupling.</p>
+                    </div>
+                    <div
+                        class="mt-8 flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-8 p-4">
+                        <div
+                            class="bg-[var(--theme-surface)] shadow-themed rounded-xl p-6 w-full md:w-1/3 text-center border border-[var(--theme-border)]">
+                            <h4 class="font-bold text-lg text-[var(--theme-text-primary)]">Scoped Component</h4>
+                            <p class="text-sm text-[var(--theme-text-secondary)] mt-1">e.g., A User Profile Card</p>
+                        </div>
+
+                        <div class="flex-grow w-full md:w-auto flex md:flex-col items-center justify-around">
+                            <div tabindex="0" aria-describedby="tooltip-get-global"
+                                class="connector-line w-full h-1 md:w-1 md:h-20 flex items-center justify-center">
+                                <div id="tooltip-get-global" role="tooltip" class="tooltip tooltip-top code-like">
+                                    getGlobal(selector)</div>
+                                <span class="text-3xl text-[var(--theme-text-secondary)] hidden md:block"
+                                    aria-hidden="true">↓</span>
+                                <span class="text-3xl text-[var(--theme-text-secondary)] md:hidden"
+                                    aria-hidden="true">→</span>
+                            </div>
+                            <div tabindex="0" aria-describedby="tooltip-dispatch-global"
+                                class="connector-line w-full h-1 md:w-1 md:h-20 flex items-center justify-center mt-4 md:mt-0">
+                                <div id="tooltip-dispatch-global" role="tooltip"
+                                    class="tooltip tooltip-bottom code-like">dispatchGlobal(action)</div>
+                                <span class="text-3xl text-[var(--theme-text-secondary)] hidden md:block"
+                                    aria-hidden="true">↑</span>
+                                <span class="text-3xl text-[var(--theme-text-secondary)] md:hidden"
+                                    aria-hidden="true">←</span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-[var(--theme-accent-primary)] text-[var(--theme-text-on-accent)] shadow-themed rounded-xl p-6 w-full md:w-1/3 text-center">
+                            <h4 class="font-bold text-lg">Global Store</h4>
+                            <p class="text-sm color-mix(in srgb, var(--theme-text-on-accent) 80%, transparent) mt-1">
+                                Single Source of Truth</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="api" role="region" aria-labelledby="api-heading" class="py-16 md:py-24 section-bg-primary">
+            <div class="container px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 id="api-heading"
+                        class="text-3xl font-extrabold tracking-tight sm:text-4xl text-[var(--theme-text-primary)]"
+                        tabindex="-1">
+                        <a href="#api" class="copy-anchor-link" title="Copy link to API section" data-anchor="api"
+                            aria-label="Copy link to API section">#</a>
+                        API
+                        <span class="copy-feedback" aria-live="polite"></span>
+                    </h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-[var(--theme-text-secondary)]">
+                        Explore the proposed public API. The design prioritizes developer experience by drawing from
+                        familiar patterns while integrating the unique capabilities of each dependency.
+                    </p>
+                </div>
+
+                <div id="api-methods" class="mt-12">
+                </div>
+
+                <div class="mt-16 pt-12 border-t border-[var(--theme-border)]">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-[var(--theme-text-primary)]">Visualizing API Influences</h3>
+                        <p class="mt-4 max-w-2xl mx-auto text-lg text-[var(--theme-text-secondary)]">This chart shows
+                            which foundational libraries inspire the core API methods, illustrating the "piece-meal"
+                            approach to building a comprehensive solution.</p>
+                    </div>
+                    <div class="mt-8 chart-container">
+                        <canvas id="apiChart" tabindex="0" role="img"
+                            aria-label="Bar chart showing API method influences from libraries like Redux, VanJS, and Immutable.js. Each bar represents an API method."></canvas>
+                    </div>
+                    <div id="api-chart-legend" class="chart-legend mt-4"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" role="region" aria-labelledby="roadmap-heading" class="py-16 md:py-24 section-bg-alt">
+            <div class="container px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 id="roadmap-heading"
+                        class="text-3xl font-extrabold tracking-tight sm:text-4xl text-[var(--theme-text-primary)]"
+                        tabindex="-1">
+                        <a href="#roadmap" class="copy-anchor-link" title="Copy link to Roadmap section"
+                            data-anchor="roadmap" aria-label="Copy link to Roadmap section">#</a>
+                        Future Roadmap
+                        <span class="copy-feedback" aria-live="polite"></span>
+                    </h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-[var(--theme-text-secondary)]">
+                        The initial release is just the beginning. The library is designed for evolution, with a clear
+                        path towards advanced features and eventual dependency freedom.
+                    </p>
+                </div>
+
+                <div class="mt-12 max-w-2xl mx-auto">
+                    <div id="timeline-container" class="relative" aria-label="Project Roadmap Timeline">
+                        <div class="absolute left-1/2 -translate-x-1/2 h-full w-0.5 bg-[var(--theme-border)]"
+                            aria-hidden="true"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo" class="footer-bg">
+        <div class="container px-4 sm:px-6 lg:px-8 py-8 text-center">
+            <p>Interactive Report generated from source documentation.</p>
+            <p class="text-sm mt-2 footer-text-secondary">stateman-cli - An Architectural Exploration</p>
+        </div>
+    </footer>
+
+    <!-- API Key Modal -->
+    <div id="apiKeyModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="apiKeyModalTitle"
+        aria-describedby="apiKeyModalDescription">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="apiKeyModalTitle" class="text-xl font-semibold"><span class="gemini-ai-symbol">✦</span> Gemini
+                    API Key</h3>
+                <button id="closeApiKeyModal" aria-label="Close API Key Modal"
+                    class="text-2xl hover:text-[var(--theme-danger)]">&times;</button>
+            </div>
+            <p id="apiKeyModalDescription" class="text-sm text-[var(--theme-text-secondary)] mb-1">Please enter your
+                Gemini API Key to enable
+                AI-powered features.</p>
+            <p id="apiKeyModalMessage" class="text-sm text-[var(--theme-danger)] mb-3 hidden" aria-live="assertive"></p>
+            <div>
+                <label for="geminiApiKeyInput" class="block text-sm">API
+                    Key:</label>
+                <input type="password" id="geminiApiKeyInput"
+                    class="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none sm:text-sm"
+                    placeholder="Enter your API Key" aria-describedby="apiKeyModalMessage">
+                <label class="mt-3 flex text-center gap-2 text-sm font-medium text-[var(--theme-text-secondary)]">
+                    <input type="checkbox" id="rememberApiKeyCheckbox" class="ml-2">
+                    Remember API Key for your next visit?
+                </label>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancelApiKeyModal"
+                    class="px-4 py-2 text-sm font-medium rounded-lg secondary-button">Cancel</button>
+                <button id="saveApiKeyButton" class="px-4 py-2 text-sm font-medium rounded-lg primary-button">Save
+                    Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keymap Modal -->
+    <div id="keymapModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="keymapModalTitle">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="keymapModalTitle" class="text-xl font-semibold">Keyboard Shortcuts</h3>
+                <button id="closeKeymapModal" aria-label="Close Keyboard Shortcuts Modal"
+                    class="text-2xl hover:text-[var(--theme-danger)]">&times;</button>
+            </div>
+            <ul class="space-y-2 text-sm text-[var(--theme-text-secondary)]">
+                <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">O</kbd> : Navigate to Overview</li>
+                <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">A</kbd> : Navigate to Architecture
+                </li>
+                <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">D</kbd> : Navigate to API</li>
+                <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">R</kbd> : Navigate to Roadmap</li>
+                <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">K</kbd> : Open API Key Settings</li>
+                <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">T</kbd> : Toggle Light/Dark Theme
+                </li>
+                <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">M</kbd> : Open this Keymap</li>
+            </ul>
+            <div class="mt-6 flex justify-end">
+                <button id="okKeymapModalButton"
+                    class="px-4 py-2 text-sm font-medium rounded-lg primary-button">OK</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const GEMINI_API_KEY_STORAGE_KEY = 'geminiUserApiKey_stateman_cli_report'
+            const THEME_STORAGE_KEY = 'stateman_cli_theme'
+            const FONT_SIZE_STORAGE_KEY = 'stateman_cli_font_size'
+
+            let geminiUserApiKey = localStorage.getItem(GEMINI_API_KEY_STORAGE_KEY) || ''
+            let modalTargetButton = null // For API key modal animation
+            let keymapModalTargetButton = null // For keymap modal animation
+
+            const apiKeyModal = document.getElementById('apiKeyModal')
+            const apiKeyModalContent = apiKeyModal.querySelector('.modal-content')
+            const geminiApiKeyInput = document.getElementById('geminiApiKeyInput')
+            const saveApiKeyButton = document.getElementById('saveApiKeyButton')
+            const closeApiKeyModalButton = document.getElementById('closeApiKeyModal')
+            const cancelApiKeyModalButton = document.getElementById('cancelApiKeyModal')
+            const navApiKeyButton = document.getElementById('nav-api-key-button')
+            const mobileNavApiKeyButton = document.getElementById('mobile-nav-api-key-button')
+            const apiKeyModalMessage = document.getElementById('apiKeyModalMessage')
+
+            const keymapModal = document.getElementById('keymapModal')
+            const keymapModalContent = keymapModal.querySelector('.modal-content')
+            const keymapButton = document.getElementById('keymap-button')
+            const mobileKeymapButton = document.getElementById('mobile-keymap-button')
+            const closeKeymapModalButton = document.getElementById('closeKeymapModal')
+            const okKeymapModalButton = document.getElementById('okKeymapModalButton')
+
+
+            const themeToggleButton = document.getElementById('theme-toggle')
+            const mobileThemeToggleButton = document.getElementById('mobile-theme-toggle')
+            const darkIcon = document.querySelectorAll('.dark-mode-icon')
+            const lightIcon = document.querySelectorAll('.light-mode-icon')
+
+            const fontSizeToggleDesktop = document.getElementById('font-size-toggle-desktop')
+            const fontSizeToggleMobile = document.getElementById('font-size-toggle-mobile')
+            const fontSizeButtons = document.querySelectorAll('.font-size-button')
+
+            const apiMethods = [
+                { id: 'api-createGlobalStore', name: 'createGlobalStore', category: 'Global Store', desc: 'Initializes the global application store.', inspiration: 'Redux' },
+                { id: 'api-globalStore-dispatch', name: 'globalStore.dispatch', category: 'Global Store', desc: 'Dispatches an action to trigger state changes.', inspiration: 'Redux' },
+                { id: 'api-globalStore-getState', name: 'globalStore.getState', category: 'Global Store', desc: 'Returns the current immutable state tree.', inspiration: 'Redux & Immutable.js' },
+                { id: 'api-globalStore-subscribe', name: 'globalStore.subscribe', category: 'Global Store', desc: 'Registers a listener for state changes.', inspiration: 'Redux' },
+                { id: 'api-applyMiddleware', name: 'applyMiddleware', category: 'Global Store', desc: 'Enhancer for applying middleware like `logging` or `async`.', inspiration: 'Redux' },
+                { id: 'api-createScopedState', name: 'createScopedState', category: 'Scoped State', desc: 'Creates a reactive, lightweight, UI-bound state.', inspiration: 'VanJS' },
+                { id: 'api-scopedState-val', name: 'scopedState.val', category: 'Scoped State', desc: 'Accesses or updates the value of a scoped state.', inspiration: 'VanJS' },
+                { id: 'api-deriveScopedState', name: 'deriveScopedState', category: 'Scoped State', desc: 'Creates a computed state from other states.', inspiration: 'VanJS' },
+                { id: 'api-scopedState-getGlobal', name: 'scopedState.getGlobal', category: 'Bridge', desc: 'Safely reads data from the global store.', inspiration: 'React-Redux' },
+                { id: 'api-scopedState-dispatchGlobal', name: 'scopedState.dispatchGlobal', category: 'Bridge', desc: 'Dispatches an action to the global store.', inspiration: 'React-Redux' },
+            ]
+
+            const inspirationToColorMap = {
+                'Redux': 'var(--chart-color-1)',
+                'VanJS': 'var(--chart-color-2)',
+                'Immutable.js': 'var(--chart-color-3)',
+                'Redux & Immutable.js': 'var(--chart-color-3)',
+                'React-Redux': 'var(--chart-color-4)'
+            }
+
+            let chartBGColors = [] // Populated by applyTheme
+
+            function getHexFallback(cssVarName, genericDefaultLight = '#808080', genericDefaultDark = '#808080') {
+                const style = getComputedStyle(document.documentElement)
+                const colorValueFromCSS = style.getPropertyValue(cssVarName).trim()
+                const currentTheme = document.documentElement.dataset.theme
+
+                const lightFallbacks = {
+                    '--theme-surface': '#ffffff', '--theme-border': '#e0e0e0', '--theme-text-primary': '#2a2c2e',
+                    '--theme-accent-primary': '#0d6efd', '--theme-accent-primary-hover': '#0b5ed7',
+                    '--theme-text-on-accent': '#ffffff', '--theme-code-bg': '#f0f0f0',
+                    '--theme-code-text': '#502477', '--theme-success': '#198754',
+                    '--theme-accent-secondary': '#6f42c1', '--theme-line-color': '#0d6efd'
+                }
+                const darkFallbacks = {
+                    '--theme-surface': '#2a2c2e', '--theme-border': '#495057', '--theme-text-primary': '#e0e1e2',
+                    '--theme-accent-primary': '#589bf0', '--theme-accent-primary-hover': '#7aaef3',
+                    '--theme-text-on-accent': '#1f2022', '--theme-code-bg': '#333538',
+                    '--theme-code-text': '#b5a1e0', '--theme-success': '#20c997',
+                    '--theme-accent-secondary': '#9370db', '--theme-line-color': '#589bf0'
+                }
+
+                const fallbacks = currentTheme === 'dark' ? darkFallbacks : lightFallbacks
+
+                if (colorValueFromCSS.startsWith('oklch')) {
+                    return fallbacks[cssVarName] || (currentTheme === 'dark' ? genericDefaultDark : genericDefaultLight)
+                } else if (colorValueFromCSS.startsWith('#') || colorValueFromCSS.toLowerCase().startsWith('rgb')) {
+                    return colorValueFromCSS
+                } else {
+                    return fallbacks[cssVarName] || (currentTheme === 'dark' ? genericDefaultDark : genericDefaultLight)
+                }
+            }
+
+
+            function getMermaidThemeVariables() {
+                return {
+                    background: getHexFallback('--theme-surface'),
+                    primaryColor: getHexFallback('--theme-surface'),
+                    primaryTextColor: getHexFallback('--theme-text-primary'),
+                    primaryBorderColor: getHexFallback('--theme-border'),
+                    lineColor: getHexFallback('--theme-accent-primary'),
+                    secondaryColor: getHexFallback('--theme-code-bg'),
+                    secondaryTextColor: getHexFallback('--theme-code-text'),
+                    tertiaryColor: getHexFallback('--theme-accent-secondary'),
+                    fontFamily: "'Roboto Mono', monospace",
+                    fontSize: (parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.9) + 'px',
+                }
+            }
+
+            function renderMermaidDiagrams() {
+                if (window.mermaid) {
+                    const currentThemeVars = getMermaidThemeVariables()
+                    mermaid.initialize({
+                        startOnLoad: false,
+                        theme: 'base',
+                        themeVariables: currentThemeVars
+                    })
+
+                    const globalFlowEl = document.getElementById('global-store-flow')
+                    const scopedFlowEl = document.getElementById('scoped-state-flow')
+
+                    const classDefs = `
+                        classDef accentNodeStyle fill:${getHexFallback('--theme-accent-primary')},stroke:${getHexFallback('--theme-accent-primary-hover')},color:${getHexFallback('--theme-text-on-accent')},rx:8px,ry:8px;
+                        classDef codeNodeStyle fill:${getHexFallback('--theme-code-bg')},stroke:${getHexFallback('--theme-border')},color:${getHexFallback('--theme-code-text')},rx:8px,ry:8px;
+                        classDef successNodeStyle fill:${getHexFallback('--theme-success')},stroke:${getHexFallback('--theme-success')},color:${getHexFallback('--theme-text-on-accent')},rx:8px,ry:8px;
+                    `
+
+                    const globalFlowDef = `
+                        graph TD
+                            ${classDefs}
+                            A["UI Event (e.g., Button Click)"]:::accentNodeStyle
+                            B["store.dispatch(...)"]:::codeNodeStyle
+                            C["Reducer: (state, action) => newState"]:::codeNodeStyle
+                            D["New Immutable State Tree"]:::successNodeStyle
+                            E["UI Updates (via store.subscribe())"]:::accentNodeStyle
+                            A --> B --> C --> D --> E
+                    `
+                    const scopedFlowDef = `
+                        graph TD
+                            ${classDefs}
+                            A["Component Initialized"]:::accentNodeStyle
+                            B["createScopedState('World')"]:::codeNodeStyle
+                            C["DOM Element Bound: <br/> &lt;h1&gt;Hello, {name}&lt;/h1&gt;"]:::codeNodeStyle
+                            D["Update state: <br/> name.val = 'Developer'"]:::codeNodeStyle
+                            E["DOM Automatically Updates"]:::successNodeStyle
+                            A --> B --> C --> D --> E
+                    `
+
+                    if (globalFlowEl) {
+                        globalFlowEl.removeAttribute('data-processed')
+                        globalFlowEl.textContent = globalFlowDef.trim()
+                    }
+                    if (scopedFlowEl) {
+                        scopedFlowEl.removeAttribute('data-processed')
+                        scopedFlowEl.textContent = scopedFlowDef.trim()
+                    }
+                    try {
+                        mermaid.run({ nodes: [globalFlowEl, scopedFlowEl].filter(el => el) }) // Run only on existing elements
+                    } catch (e) {
+                        console.error("Mermaid rendering error:", e)
+                    }
+                }
+            }
+
+
+            function updateChartStyles() {
+                if (window.apiChartInstance) {
+                    const newOptions = getChartOptions()
+                    window.apiChartInstance.options.plugins.tooltip = newOptions.plugins.tooltip
+                    window.apiChartInstance.options.scales = newOptions.scales
+                    window.apiChartInstance.data.datasets.forEach((dataset, i) => {
+                        dataset.backgroundColor = chartBGColors
+                        dataset.borderColor = chartBGColors.map(color => {
+                            if (color.includes('rgba')) return color.replace(/,\s*\d?\.?\d+\)/, ', 1)')
+                            if (color.includes('oklch')) return color.replace(/(\s*\/\s*\d?\.?\d+)\)/, ' / 1)')
+                            return color
+                        })
+                        dataset.borderWidth = 0
+                    })
+                    window.apiChartInstance.update()
+                }
+            }
+
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark')
+                    darkIcon.forEach(i => i.classList.remove('hidden'))
+                    lightIcon.forEach(i => i.classList.add('hidden'))
+                } else {
+                    document.documentElement.removeAttribute('data-theme')
+                    darkIcon.forEach(i => i.classList.add('hidden'))
+                    lightIcon.forEach(i => i.classList.remove('hidden'))
+                }
+                chartBGColors = apiMethods.map(m => {
+                    const inspiration = m.inspiration
+                    const colorVar = inspirationToColorMap[inspiration] || '--theme-text-secondary'
+                    let colorValue = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim()
+                    if (colorValue.includes('oklch') && !colorValue.includes(' / 0.7')) {
+                        if (colorValue.includes(' / 1')) {
+                            colorValue = colorValue.replace(' / 1)', ' / 0.7)')
+                        } else {
+                            colorValue = colorValue.replace(')', ' / 0.7)')
+                        }
+                    } else if (colorValue.includes('rgba') && !colorValue.match(/, *0\.7\)/)) {
+                        colorValue = colorValue.replace(/rgb\((.*)\)/, 'rgba($1, 0.7)').replace(/rgba\((.*), *1\)/, 'rgba($1, 0.7)')
+                    }
+                    return colorValue
+                })
+                document.querySelectorAll('#api-chart-legend .legend-item').forEach(legendItem => {
+                    const inspiration = legendItem.dataset.inspiration
+                    const colorVar = inspirationToColorMap[inspiration] || '--theme-text-secondary'
+                    const colorVal = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim().replace('0.7', '1')
+                    legendItem.querySelector('.legend-color-box').style.backgroundColor = colorVal
+                })
+                updateChartStyles()
+                renderMermaidDiagrams()
+            }
+
+            function toggleTheme() {
+                const currentTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+                localStorage.setItem(THEME_STORAGE_KEY, newTheme)
+                applyTheme(newTheme)
+            }
+
+            themeToggleButton.addEventListener('click', toggleTheme)
+            mobileThemeToggleButton.addEventListener('click', toggleTheme)
+
+            const savedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+
+
+            function applyFontSize(size) {
+                document.documentElement.setAttribute('data-font-size', size)
+                fontSizeButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.size === size)
+                    btn.setAttribute('aria-pressed', btn.dataset.size === size)
+                })
+                updateChartStyles()
+                renderMermaidDiagrams()
+            }
+
+            function setFontSizePreference(size) {
+                localStorage.setItem(FONT_SIZE_STORAGE_KEY, size)
+                applyFontSize(size)
+            }
+
+            fontSizeButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    setFontSizePreference(e.currentTarget.dataset.size)
+                })
+            })
+
+            const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY)
+            applyFontSize(savedFontSize || 'md')
+            applyTheme(savedTheme || (prefersDark ? 'dark' : 'light')) // Initial theme apply, also runs mermaid
+
+
+            function openApiKeyModal(targetButton, message = null) {
+                modalTargetButton = targetButton
+                geminiApiKeyInput.value = geminiUserApiKey
+                apiKeyModal.classList.add('open')
+                if (message) {
+                    apiKeyModalMessage.textContent = message
+                    apiKeyModalMessage.classList.remove('hidden')
+                } else {
+                    apiKeyModalMessage.classList.add('hidden')
+                }
+                geminiApiKeyInput.focus()
+            }
+
+            function closeApiKeyModal() {
+                if (!modalTargetButton) {
+                    apiKeyModal.classList.remove('open')
+                    return
+                }
+                const modalRect = apiKeyModalContent.getBoundingClientRect()
+                const targetRect = modalTargetButton.getBoundingClientRect()
+                const translateX = targetRect.left + targetRect.width / 2 - (modalRect.left + modalRect.width / 2)
+                const translateY = targetRect.top + targetRect.height / 2 - (modalRect.top + modalRect.height / 2)
+                apiKeyModalContent.style.transition = 'transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease-out'
+                apiKeyModalContent.style.transformOrigin = 'center center'
+                apiKeyModalContent.style.transform = `translate(${translateX}px, ${translateY}px) scale(0.1)`
+                apiKeyModalContent.style.opacity = '0'
+                apiKeyModal.classList.add('modal-closing')
+                setTimeout(() => {
+                    apiKeyModal.classList.remove('open', 'modal-closing')
+                    apiKeyModalContent.style.transform = ''
+                    apiKeyModalContent.style.opacity = ''
+                    apiKeyModalMessage.classList.add('hidden')
+                    if (modalTargetButton) modalTargetButton.focus() // Return focus
+                }, 400)
+            }
+
+            function openKeymapModal(targetButton) {
+                keymapModalTargetButton = targetButton
+                keymapModal.classList.add('open')
+            }
+
+            function closeKeymapModal() {
+                if (!keymapModalTargetButton) {
+                    keymapModal.classList.remove('open')
+                    return
+                }
+                const modalRect = keymapModalContent.getBoundingClientRect()
+                const targetRect = keymapModalTargetButton.getBoundingClientRect()
+                const translateX = targetRect.left + targetRect.width / 2 - (modalRect.left + modalRect.width / 2)
+                const translateY = targetRect.top + targetRect.height / 2 - (modalRect.top + modalRect.height / 2)
+                keymapModalContent.style.transition = 'transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease-out'
+                keymapModalContent.style.transformOrigin = 'center center'
+                keymapModalContent.style.transform = `translate(${translateX}px, ${translateY}px) scale(0.1)`
+                keymapModalContent.style.opacity = '0'
+                keymapModal.classList.add('modal-closing')
+                setTimeout(() => {
+                    keymapModal.classList.remove('open', 'modal-closing')
+                    keymapModalContent.style.transform = ''
+                    keymapModalContent.style.opacity = ''
+                    if (keymapModalTargetButton) keymapModalTargetButton.focus()
+                }, 400)
+            }
+
+            keymapButton.addEventListener('click', (e) => openKeymapModal(e.currentTarget))
+            if (mobileKeymapButton) mobileKeymapButton.addEventListener('click', (e) => openKeymapModal(e.currentTarget)) // Check if it exists
+            closeKeymapModalButton.addEventListener('click', closeKeymapModal)
+            okKeymapModalButton.addEventListener('click', closeKeymapModal)
+
+
+            navApiKeyButton.addEventListener('click', (e) => openApiKeyModal(e.currentTarget))
+            mobileNavApiKeyButton.addEventListener('click', (e) => openApiKeyModal(e.currentTarget))
+            closeApiKeyModalButton.addEventListener('click', closeApiKeyModal)
+            cancelApiKeyModalButton.addEventListener('click', closeApiKeyModal)
+
+            saveApiKeyButton.addEventListener('click', () => {
+                const newKey = geminiApiKeyInput.value.trim()
+                if (newKey) {
+                    geminiUserApiKey = newKey
+                    localStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, geminiUserApiKey)
+                    console.log('API Key saved to localStorage.')
+                    closeApiKeyModal()
+                } else {
+                    apiKeyModalMessage.textContent = 'API Key cannot be empty.'
+                    apiKeyModalMessage.classList.remove('hidden')
+                }
+            })
+
+            const sections = document.querySelectorAll('section[id]')
+            const navLinksForScrollspy = document.querySelectorAll('a.nav-link[href^="#"]')
+
+
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.4 }
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.target && entry.target.id) {
+                        const currentSectionId = entry.target.id
+                        navLinksForScrollspy.forEach(link => {
+                            link.classList.remove('active')
+                            link.removeAttribute('aria-current')
+                            const href = link.getAttribute('href')
+                            if (href && typeof href === 'string' && href.startsWith('#')) {
+                                if (href.substring(1) === currentSectionId) {
+                                    link.classList.add('active')
+                                    link.setAttribute('aria-current', 'page')
+                                }
+                            }
+                        })
+                    }
+                })
+            }, observerOptions)
+            sections.forEach(section => {
+                if (section.id) observer.observe(section)
+            })
+
+            const tabs = document.querySelectorAll('.tab')
+            const tabContents = document.querySelectorAll('.tab-content')
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.getAttribute('aria-controls')
+                    tabs.forEach(t => {
+                        t.classList.remove('active')
+                        t.setAttribute('aria-selected', 'false')
+                    })
+                    tab.classList.add('active')
+                    tab.setAttribute('aria-selected', 'true')
+                    tabContents.forEach(content => {
+                        content.classList.toggle('hidden', content.id !== targetId)
+                    })
+                    renderMermaidDiagrams() // Re-render when tab changes
+                })
+            })
+
+            const apiContainer = document.getElementById('api-methods')
+            apiMethods.forEach(method => {
+                const card = document.createElement('div')
+                card.className = 'api-card p-6 rounded-xl flex flex-col justify-between' // Ensure margin-bottom is handled by column-gap or direct style if needed
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-semibold text-[var(--theme-text-primary)]"><code class="code-like">${method.name}</code></h4>
+                        <p class="text-sm text-[var(--theme-text-secondary)] mt-1">${method.desc.replace(/`([^`]+)`/g, '<code class="code-like">$1</code>')}</p>
+                        <p class="text-xs text-[var(--theme-text-secondary)] mt-4">Inspired by: <span class="font-medium text-[var(--theme-text-primary)]">${method.inspiration}</span></p>
+                    </div>
+                    <button data-method-name="${method.name}" data-output-id="explanation-${method.id}" aria-live="polite" class="gemini-button mt-4 self-start explain-concept-btn"><span class="interactive-indicator"><span class="gemini-ai-symbol">✦</span>  Explain Concept</span></button>
+                    <div id="explanation-${method.id}" class="gemini-output hidden" aria-live="polite"></div>
+                `
+                apiContainer.appendChild(card)
+            })
+
+            function getChartFontSizes() {
+                const currentFontSizeSetting = document.documentElement.dataset.fontSize || 'md'
+                let tickSize = 14
+                let tooltipSize = 12
+                // These are pixel values for Chart.js
+                if (currentFontSizeSetting === 'sm') {
+                    tickSize = 12
+                    tooltipSize = 11
+                } else if (currentFontSizeSetting === 'lg') {
+                    tickSize = 16
+                    tooltipSize = 14
+                }
+                return { tickSize, tooltipSize }
+            }
+
+            const chartLegendContainer = document.getElementById('api-chart-legend')
+            const uniqueInspirations = [...new Set(apiMethods.map(m => m.inspiration))]
+
+            uniqueInspirations.forEach((inspiration, index) => {
+                const colorVar = inspirationToColorMap[inspiration] || '--theme-text-secondary'
+                const colorVal = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim().replace('0.7', '1')
+
+                const legendItem = document.createElement('div')
+                legendItem.className = 'legend-item'
+                legendItem.setAttribute('data-inspiration', inspiration)
+                legendItem.setAttribute('tabindex', '0')
+                legendItem.setAttribute('role', 'button')
+                legendItem.setAttribute('aria-label', `Filter by ${inspiration}`)
+                legendItem.innerHTML = `
+                    <span class="legend-color-box" style="background-color: ${colorVal};"></span>
+                    <span>${inspiration}</span>
+                    <span class="interactive-indicator"></span>
+                `
+                chartLegendContainer.appendChild(legendItem)
+            })
+
+
+            function getChartOptions() {
+                const computedStyle = getComputedStyle(document.documentElement)
+                const { tickSize, tooltipSize } = getChartFontSizes()
+                return {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    barPercentage: 0.5,
+                    categoryPercentage: 0.6,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: true,
+                            position: 'nearest',
+                            xAlign: 'right',
+                            yAlign: 'center',
+                            caretPadding: 10,
+                            backgroundColor: computedStyle.getPropertyValue('--chart-tooltip-bg').trim(),
+                            titleColor: computedStyle.getPropertyValue('--chart-tooltip-text').trim(),
+                            bodyColor: computedStyle.getPropertyValue('--chart-tooltip-text').trim(),
+                            titleFont: { size: tooltipSize },
+                            bodyFont: { size: tooltipSize },
+                            callbacks: {
+                                label: function(context) { return `Inspired by: ${apiMethods[context.dataIndex].inspiration}` }
+                            }
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        const chart = window.apiChartInstance
+                        const legendItems = document.querySelectorAll('#api-chart-legend .legend-item')
+                        const originalBGColors = chartBGColors.slice()
+
+                        if (chartElement.length) {
+                            const activeElement = chartElement[0]
+                            const hoveredInspiration = apiMethods[activeElement.index].inspiration
+
+                            chart.data.datasets[0].backgroundColor = originalBGColors.map((color, i) => {
+                                const currentInspiration = apiMethods[i].inspiration
+                                if (currentInspiration === hoveredInspiration) {
+                                    return color
+                                } else {
+                                    if (color.includes('oklch') || color.includes('rgba')) {
+                                        return color.replace(/(\d(\.\d+)?)\)/, '0.35)') // Dimmed opacity
+                                    }
+                                    return 'oklch(0.5 0 0 / 0.35)'
+                                }
+                            })
+                            legendItems.forEach(item => {
+                                item.classList.toggle('dimmed', item.dataset.inspiration !== hoveredInspiration)
+                            })
+                        } else {
+                            chart.data.datasets[0].backgroundColor = originalBGColors
+                            legendItems.forEach(item => {
+                                item.classList.remove('dimmed')
+                            })
+                        }
+                        chart.update()
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                            grid: { display: false },
+                            ticks: { color: computedStyle.getPropertyValue('--chart-tick-color').trim(), font: { size: tickSize } }
+                        },
+                        y: {
+                            ticks: { color: computedStyle.getPropertyValue('--chart-tick-color').trim(), font: { size: tickSize } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            }
+
+            // Initialize chartBGColors after theme is set for the first time
+            // applyTheme(savedTheme || (prefersDark ? 'dark' : 'light')); // This will call updateChartStyles which uses chartBGColors
+
+            const chartData = {
+                labels: apiMethods.map(m => m.name),
+                datasets: [{
+                    label: 'API Source Influence',
+                    data: apiMethods.map(() => 1),
+                    backgroundColor: chartBGColors, // Use the initialized value
+                    borderColor: chartBGColors.map(color => color.replace(/(\d(\.\d+)?)\)/, '1)')), // Full opacity for border
+                    borderWidth: 0 // Remove border from bars
+                }]
+            }
+            window.apiChartInstance = new Chart(document.getElementById('apiChart').getContext('2d'), {
+                type: 'bar', data: chartData, options: getChartOptions()
+            })
+
+            // Interactive Legend Logic
+            document.querySelectorAll('#api-chart-legend .legend-item').forEach(legendItem => {
+                const handleInteraction = (inspiration, isHovering) => {
+                    const originalBGColors = chartBGColors.slice()
+                    window.apiChartInstance.data.datasets[0].backgroundColor = originalBGColors.map((color, i) => {
+                        const currentInspiration = apiMethods[i].inspiration
+                        if (isHovering) {
+                            if (currentInspiration === inspiration) return color
+                            if (color.includes('oklch') || color.includes('rgba')) return color.replace(/(\d(\.\d+)?)\)/, '0.35)')
+                            return 'oklch(0.5 0 0 / 0.35)'
+                        }
+                        return color
+                    })
+                    document.querySelectorAll('#api-chart-legend .legend-item').forEach(item => {
+                        item.classList.toggle('dimmed', isHovering && item.dataset.inspiration !== inspiration)
+                    })
+                    window.apiChartInstance.update()
+                }
+
+                legendItem.addEventListener('mouseenter', () => handleInteraction(legendItem.dataset.inspiration, true))
+                legendItem.addEventListener('mouseleave', () => handleInteraction(null, false))
+                legendItem.addEventListener('focus', () => handleInteraction(legendItem.dataset.inspiration, true))
+                legendItem.addEventListener('blur', () => handleInteraction(null, false))
+            })
+
+
+            const roadmapItems = [
+                { phase: 'Phase 1', title: 'Core Functionality', desc: 'Implement the dual-store architecture (Global & Scoped), the bridge between them, and the core public API. Establish comprehensive testing.' },
+                { phase: 'Phase 2', title: 'Enhancements & DX', desc: 'Integrate with Redux DevTools for time-travel debugging, implement the middleware system, and add the initial state persistence layer with a localStorage adapter.' },
+                { phase: 'Phase 3', title: 'Expansion & Refinement', desc: 'Create a full build system for multiple distribution formats (ESM, UMD). Begin incrementally replacing small dependencies with custom implementations based on the dependency-free research.' }
+            ]
+
+            const timelineContainer = document.getElementById('timeline-container')
+            roadmapItems.forEach((item, index) => {
+                const itemEl = document.createElement('div')
+                itemEl.className = 'timeline-item mb-8 flex justify-between items-center w-full'
+                const contentId = `timeline-content-${index}`
+                if (index % 2 === 1) itemEl.classList.add('flex-row-reverse')
+                itemEl.innerHTML = `<div class="order-1 w-5/12"></div><div class="z-10 flex items-center order-1 bg-[var(--theme-accent-primary)] shadow-xl w-8 h-8 rounded-full"><h1 class="mx-auto font-semibold text-lg text-[var(--theme-text-on-accent)]" aria-hidden="true">${index + 1}</h1></div><div role="button" tabindex="0" aria-expanded="false" aria-controls="${contentId}" class="order-1 bg-[var(--theme-surface)] rounded-xl shadow-themed w-5/12 px-6 py-4 cursor-pointer timeline-item-trigger border border-[var(--theme-border)]"><h3 class="font-bold text-[var(--theme-text-primary)] text-lg"><span class="interactive-indicator">${item.title}</span></h3><div id="${contentId}" class="timeline-item-content pt-4"><p class="text-sm leading-snug tracking-wide text-[var(--theme-text-secondary)]">${item.desc}</p></div></div>`
+                timelineContainer.appendChild(itemEl)
+            })
+
+            document.querySelectorAll('.timeline-item-trigger').forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const isOpen = trigger.closest('.timeline-item').classList.toggle('open')
+                    trigger.setAttribute('aria-expanded', isOpen)
+                })
+                trigger.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        const isOpen = trigger.closest('.timeline-item').classList.toggle('open')
+                        trigger.setAttribute('aria-expanded', isOpen)
+                    }
+                })
+            })
+
+            // Viewport aware tooltips for connector lines
+            document.querySelectorAll('.connector-line').forEach(connector => {
+                const tooltip = connector.querySelector('.tooltip')
+                if (!tooltip) return
+
+                const showTooltip = () => {
+                    tooltip.style.visibility = 'visible'
+                    tooltip.style.opacity = '1'
+
+                    const rect = tooltip.getBoundingClientRect()
+                    const viewportWidth = window.innerWidth
+                    const viewportHeight = window.innerHeight
+
+                    let newLeft = tooltip.style.left
+                    let newTop = tooltip.style.top
+
+
+                    if (rect.right > viewportWidth) {
+                        newLeft = (viewportWidth - rect.width - 5) + 'px'
+                        tooltip.style.transform = 'translateX(0)'
+                    } else if (rect.left < 0) {
+                        newLeft = '5px'
+                        tooltip.style.transform = 'translateX(0)'
+                    }
+
+
+                    if (tooltip.classList.contains('tooltip-top')) {
+                        if (rect.top < 0) {
+
+                            tooltip.classList.remove('tooltip-top')
+                            tooltip.classList.add('tooltip-bottom')
+                            tooltip.style.bottom = 'auto'
+                            tooltip.style.top = 'calc(100% + 5px)'
+                        }
+                    } else if (tooltip.classList.contains('tooltip-bottom')) {
+                        if (rect.bottom > viewportHeight) {
+
+                            tooltip.classList.remove('tooltip-bottom')
+                            tooltip.classList.add('tooltip-top')
+                            tooltip.style.top = 'auto'
+                            tooltip.style.bottom = 'calc(100% + 5px)'
+                        }
+                    }
+
+                    if (newLeft !== tooltip.style.left && (rect.right > viewportWidth || rect.left < 0)) {
+                        const parentRect = connector.getBoundingClientRect()
+                        tooltip.style.left = (parseFloat(newLeft) - parentRect.left) + 'px'
+                    }
+
+                }
+
+                const hideTooltip = () => {
+                    tooltip.style.visibility = 'hidden'
+                    tooltip.style.opacity = '0'
+                }
+
+                connector.addEventListener('mouseenter', showTooltip)
+                connector.addEventListener('focus', showTooltip)
+                connector.addEventListener('mouseleave', hideTooltip)
+                connector.addEventListener('blur', hideTooltip)
+            })
+
+
+            async function callGemini(prompt, outputElement, triggerButton) {
+                if (!geminiUserApiKey) {
+                    openApiKeyModal(triggerButton, "An API Key is required for this feature.")
+                    outputElement.innerHTML = 'API Key required. Please set it via the <span class="gemini-ai-symbol">✦</span>  button.'
+                    outputElement.classList.remove('hidden')
+                    return
+                }
+
+                outputElement.classList.remove('hidden')
+                outputElement.innerHTML = '<div class="loading-spinner"></div> Fetching insights...'
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiUserApiKey}`
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }]
+                }
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    })
+                    if (!response.ok) {
+                        if (response.status === 400 || response.status === 401 || response.status === 403) {
+                            openApiKeyModal(triggerButton, `API Error (${response.status}): Invalid API Key or permission issue. Please check your key.`)
+                        }
+                        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+                    }
+                    const result = await response.json()
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text
+                        let htmlText = text.replace(/\n\*/g, '<ul><li>').replace(/\* /g, '<li>').replace(/(\<\/li\>)\n/g, '$1</ul>\n').replace(/(\<\/ul\>)\n([A-Za-z])/g, '$1<p>$2')
+                        if (text.includes("* ")) htmlText = htmlText.replace(/([^*])$/gm, '$1</li></ul>')
+                        htmlText = htmlText.replace(/\n/g, '<br>')
+                        outputElement.innerHTML = htmlText
+                    } else {
+                        outputElement.innerHTML = 'Sorry, could not retrieve information at this time.'
+                        console.error('Unexpected Gemini API response structure:', result)
+                        if (result.error) {
+                            outputElement.innerHTML += `<br>Details: ${result.error.message || 'Unknown error'}`
+                            if (result.error.code === 400 || result.error.code === 403) {
+                                openApiKeyModal(triggerButton, `API Error (${result.error.code}): ${result.error.message}. Please check your key.`)
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error calling Gemini API:', error)
+                    outputElement.innerHTML = `Error: ${error.message}. Please try again later.`
+                }
+            }
+
+            document.querySelectorAll('.explain-concept-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const triggerButton = e.currentTarget
+                    const methodName = triggerButton.dataset.methodName
+                    const method = apiMethods.find(m => m.name === methodName)
+                    const outputDivId = triggerButton.dataset.outputId
+                    const outputElement = document.getElementById(outputDivId)
+                    const prompt = `Explain the concept of the API method "${methodName}" (inspired by ${method.inspiration}) in the context of JavaScript state management libraries. Focus on its primary purpose, how it's typically used by developers, and one key benefit it provides. Keep the explanation concise (around 3-4 sentences) and suitable for a developer learning about this.`
+                    callGemini(prompt, outputElement, triggerButton)
+                })
+            })
+
+            document.querySelectorAll('.suggest-usecases-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const triggerButton = e.currentTarget
+                    const outputElement = document.getElementById(triggerButton.dataset.outputId)
+                    let prompt = ""
+                    if (triggerButton.dataset.outputId === "global-usecases-output") {
+                        prompt = "For a Global Store in a JavaScript state management library (inspired by Redux and using Immutable.js), suggest 3 distinct practical use cases or scenarios where this type of store would be most beneficial. For each use case, briefly explain why the global store is a good fit. Present as a bulleted list."
+                    } else {
+                        prompt = "For a Scoped State in a JavaScript state management library (inspired by VanJS, focusing on lightweight, reactive, UI-bound state), suggest 3 distinct practical use cases or scenarios where this type of state would be most beneficial. For each use case, briefly explain why scoped state is a good fit. Present as a bulleted list."
+                    }
+                    callGemini(prompt, outputElement, triggerButton)
+                })
+            })
+
+            // Keyboard Shortcuts & Copy Anchor
+            document.querySelectorAll('.copy-anchor-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault()
+                    const anchorId = e.currentTarget.dataset.anchor
+                    const url = `${window.location.origin}${window.location.pathname}#${anchorId}`
+                    const feedbackSpan = e.currentTarget.nextElementSibling
+
+                    try {
+                        const tempTextArea = document.createElement('textarea')
+                        tempTextArea.value = url
+                        document.body.appendChild(tempTextArea)
+                        tempTextArea.select()
+                        document.execCommand('copy')
+                        document.body.removeChild(tempTextArea)
+
+                        if (feedbackSpan) {
+                            feedbackSpan.textContent = 'Copied!'
+                            feedbackSpan.classList.add('visible')
+                            setTimeout(() => {
+                                feedbackSpan.classList.remove('visible')
+                                feedbackSpan.textContent = ''
+                            }, 2000)
+                        }
+                    } catch (err) {
+                        console.error('Failed to copy anchor link: ', err)
+                        if (feedbackSpan) {
+                            feedbackSpan.textContent = 'Copy failed!'
+                            feedbackSpan.classList.add('visible')
+                            setTimeout(() => {
+                                feedbackSpan.classList.remove('visible')
+                                feedbackSpan.textContent = ''
+                            }, 2000)
+                        }
+                    }
+                })
+            })
+
+            document.addEventListener('keydown', (event) => {
+                if (event.altKey) {
+                    let targetElement = null
+                    let sectionToFocus = null
+
+                    switch (event.key.toLowerCase()) {
+                        case 'o':
+                            targetElement = document.getElementById('overview-link')
+                            sectionToFocus = document.getElementById('overview-heading')
+                            break
+                        case 'a':
+                            targetElement = document.getElementById('architecture-link')
+                            sectionToFocus = document.getElementById('architecture-heading')
+                            break
+                        case 'd':
+                            targetElement = document.getElementById('api-link')
+                            sectionToFocus = document.getElementById('api-heading')
+                            break
+                        case 'r':
+                            targetElement = document.getElementById('roadmap-link')
+                            sectionToFocus = document.getElementById('roadmap-heading')
+                            break
+                        case 'k':
+                            targetElement = document.getElementById('nav-api-key-button') || document.getElementById('mobile-nav-api-key-button')
+                            break
+                        case 't':
+                            targetElement = document.getElementById('theme-toggle') || document.getElementById('mobile-theme-toggle')
+                            break
+                        case 'm':
+                            targetElement = document.getElementById('keymap-button') || document.getElementById('mobile-keymap-button')
+                            break
+                    }
+
+                    if (targetElement) {
+                        event.preventDefault()
+                        targetElement.click()
+                        if (sectionToFocus && targetElement.tagName === 'A') {
+                            const sectionId = targetElement.getAttribute('href').substring(1)
+                            window.location.hash = sectionId
+                            setTimeout(() => {
+                                const heading = document.getElementById(`${sectionId}-heading`)
+                                if (heading) heading.focus()
+                            }, 100)
+                        }
+                    }
+                }
+            })
+
+            // Initial render of Mermaid diagrams after theme and font size are set
+            renderMermaidDiagrams()
+
+
+        });
+    </script>
+</body>
+
+</html>
