@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infographic: The Architecture of a Hybrid State Management Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Energetic & Playful -->
+    <!-- Application Structure Plan: The infographic follows a top-down narrative, starting with the high-level vision, breaking it down into the core architectural pillars and the dual-store model. It then details the synergy of dependencies and the crucial "bridge" concept. The story continues by visualizing the API design influences and concludes with a forward-looking roadmap. This linear, scrolling narrative was chosen to guide the user logically through a complex technical topic, making it digestible and telling a coherent story from concept to execution. -->
+    <!-- Visualization & Content Choices:
+\- Data: Core Pillars. Goal: Inform. Viz: Icon cards. Justification: High-impact, scannable introduction. Method: HTML/CSS. (NO SVG)
+\- Data: Global & Scoped Store Flows. Goal: Organize/Process. Viz: HTML/CSS Flowcharts. Justification: Clearly visualizes the distinct operational loops. Method: HTML/CSS. (NO SVG/Mermaid)
+\- Data: Dependency Contributions. Goal: Compare/Composition. Viz: Donut Charts. Justification: Visually represents each library's role as a part of the whole. Method: Chart.js/Canvas. (NO SVG)
+\- Data: API Inspirations. Goal: Compare/Composition. Viz: Polar Area Chart. Justification: A more dynamic and engaging way to show proportional influence than a simple bar or pie chart. Method: Chart.js/Canvas. (NO SVG)
+\- Data: Development Roadmap. Goal: Change/Process. Viz: HTML/CSS Timeline. Justification: The most intuitive format for a phased plan. Method: HTML/CSS. (NO SVG/Mermaid)
+\-->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .polar-chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 500px;
+        }
+
+        .flow-arrow {
+            content: '';
+            display: inline-block;
+            width: 2.5rem;
+            height: 2px;
+            background-color: #118AB2;
+            position: relative;
+        }
+
+        .flow-arrow::after {
+            content: '►';
+            font-size: 1.5rem;
+            line-height: 0;
+            position: absolute;
+            right: -8px;
+            top: 1px;
+            color: #118AB2;
+        }
+
+        .flow-arrow-down {
+            content: '';
+            display: block;
+            margin: 0.5rem auto;
+            width: 2px;
+            height: 2.5rem;
+            background-color: #118AB2;
+            position: relative;
+        }
+
+        .flow-arrow-down::after {
+            content: '▼';
+            font-size: 1.5rem;
+            line-height: 0;
+            position: absolute;
+            bottom: -8px;
+            left: -11px;
+            color: #118AB2;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-gray-800">
+
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center my-12">
+            <h1 class="text-4xl md:text-6xl font-black text-[#073B4C] leading-tight">Architecting a Hybrid<br>State
+                Management Library</h1>
+            <p class="mt-4 text-lg md:text-xl text-[#118AB2] max-w-3xl mx-auto">Leveraging the industry's best to build
+                a unified, powerful, and developer-friendly state solution in Vanilla JS.</p>
+        </header>
+
+        <section id="pillars" class="my-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-[#073B4C]">The Core Philosophy</h2>
+                <p class="mt-2 text-lg text-gray-600">The library is founded on three key architectural pillars designed
+                    for flexibility and power.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div
+                    class="bg-white rounded-xl shadow-lg p-8 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-5xl text-[#118AB2]">🔄</div>
+                    <h3 class="text-2xl font-bold mt-4 text-[#073B4C]">Dual-Store Architecture</h3>
+                    <p class="mt-2 text-gray-600">A powerful global store for application-wide state, paired with
+                        lightweight, private scoped states for individual components.</p>
+                </div>
+                <div
+                    class="bg-white rounded-xl shadow-lg p-8 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-5xl text-[#06D6A0]">💎</div>
+                    <h3 class="text-2xl font-bold mt-4 text-[#073B4C]">Guaranteed Immutability</h3>
+                    <p class="mt-2 text-gray-600">Enforcing data integrity and predictable state changes in the global
+                        store, preventing side-effects and enabling advanced features.</p>
+                </div>
+                <div
+                    class="bg-white rounded-xl shadow-lg p-8 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-5xl text-[#FFD166]">🧩</div>
+                    <h3 class="text-2xl font-bold mt-4 text-[#073B4C]">Native Enhancement</h3>
+                    <p class="mt-2 text-gray-600">Designed to augment, not replace, native platform features like Web
+                        Component state and the DOM event model.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="dual-store" class="my-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-[#073B4C]">A Tale of Two Stores</h2>
+                <p class="mt-2 text-lg text-gray-600">The architecture provides two distinct but connected state
+                    management models to fit any use case.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h3 class="text-2xl font-bold text-center text-[#073B4C]">The Global Store</h3>
+                    <p class="text-center text-gray-600 mt-2">For centralized, predictable application-wide state.</p>
+                    <div class="mt-8 space-y-4">
+                        <div class="text-center bg-[#118AB2] text-white p-3 rounded-lg shadow-md">UI Event</div>
+                        <div class="flow-arrow-down"></div>
+                        <div class="text-center bg-gray-100 p-3 rounded-lg shadow-md">`store.dispatch(action)`</div>
+                        <div class="flow-arrow-down"></div>
+                        <div class="text-center bg-gray-100 p-3 rounded-lg shadow-md">Middleware Chain</div>
+                        <div class="flow-arrow-down"></div>
+                        <div class="text-center bg-gray-100 p-3 rounded-lg shadow-md">Pure Reducer</div>
+                        <div class="flow-arrow-down"></div>
+                        <div class="text-center bg-[#06D6A0] text-white p-3 rounded-lg shadow-md">New Immutable State
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h3 class="text-2xl font-bold text-center text-[#073B4C]">Scoped State</h3>
+                    <p class="text-center text-gray-600 mt-2">For localized, reactive component-level state.</p>
+                    <div class="mt-8 space-y-4">
+                        <div class="text-center bg-[#FF6B6B] text-white p-3 rounded-lg shadow-md">Component Initialized
+                        </div>
+                        <div class="flow-arrow-down"></div>
+                        <div class="text-center bg-gray-100 p-3 rounded-lg shadow-md">`createScopedState(value)`</div>
+                        <div class="flow-arrow-down"></div>
+                        <div class="text-center bg-gray-100 p-3 rounded-lg shadow-md">`state.val = newValue`</div>
+                        <div class="flow-arrow-down"></div>
+                        <div class="text-center bg-[#FFD166] text-black p-3 rounded-lg shadow-md">Direct DOM Update
+                        </div>
+                        <div class="flow-arrow-down"></div>
+                        <div class="text-center bg-gray-100 p-3 rounded-lg shadow-md">UI Reflects Change</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dependencies" class="my-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-[#073B4C]">The Power of Synergy</h2>
+                <p class="mt-2 text-lg text-gray-600">The library's initial strength comes from unifying the best
+                    features of established tools.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <h3 class="text-xl font-bold text-[#073B4C]">Redux</h3>
+                    <p class="text-gray-500 mb-4 h-12">Provides the predictable state container pattern.</p>
+                    <div class="chart-container h-64">
+                        <canvas id="reduxChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <h3 class="text-xl font-bold text-[#073B4C]">VanJS</h3>
+                    <p class="text-gray-500 mb-4 h-12">Powers the reactive, lightweight scoped states.</p>
+                    <div class="chart-container h-64">
+                        <canvas id="vanjsChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <h3 class="text-xl font-bold text-[#073B4C]">Immutable.js</h3>
+                    <p class="text-gray-500 mb-4 h-12">Ensures data integrity and performance.</p>
+                    <div class="chart-container h-64">
+                        <canvas id="immutableChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <h3 class="text-xl font-bold text-[#073B4C]">Killa.js</h3>
+                    <p class="text-gray-500 mb-4 h-12">Inspires the flexible state persistence layer.</p>
+                    <div class="chart-container h-64">
+                        <canvas id="killaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="bridge" class="my-20 py-12 bg-white rounded-xl shadow-lg">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-[#073B4C]">The Bridge: Connecting Worlds</h2>
+                <p class="mt-2 text-lg text-gray-600 max-w-2xl mx-auto">A controlled interface allows scoped components
+                    to safely read from or dispatch actions to the global store.</p>
+            </div>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 p-4">
+                <div class="bg-[#FF6B6B] text-white p-6 rounded-lg shadow-md text-center w-full md:w-1/4">
+                    <h4 class="font-bold">Scoped Component</h4>
+                </div>
+                <div class="flex items-center justify-center w-full md:w-auto">
+                    <div class="flow-arrow hidden md:inline-block"></div>
+                    <div class="flow-arrow-down inline-block md:hidden"></div>
+                </div>
+                <div class="border-2 border-dashed border-[#118AB2] rounded-lg p-6 text-center w-full md:w-1/3">
+                    <div class="font-mono text-sm text-[#118AB2]">`getGlobalState(selector)`</div>
+                    <div class="font-mono text-sm text-[#118AB2] mt-2">`dispatchGlobal(action)`</div>
+                </div>
+                <div class="flex items-center justify-center w-full md:w-auto">
+                    <div class="flow-arrow hidden md:inline-block"></div>
+                    <div class="flow-arrow-down inline-block md:hidden"></div>
+                </div>
+                <div class="bg-[#118AB2] text-white p-6 rounded-lg shadow-md text-center w-full md:w-1/4">
+                    <h4 class="font-bold">Global Store</h4>
+                </div>
+            </div>
+        </section>
+
+        <section id="api" class="my-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-[#073B4C]">API Inspiration</h2>
+                <p class="mt-2 text-lg text-gray-600">The library's API design is a synthesis of familiar and powerful
+                    patterns.</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="polar-chart-container">
+                    <canvas id="apiInspirationChart"></canvas>
+                </div>
+                <p class="text-center mt-4 text-gray-600">This chart illustrates the proportional influence of source
+                    libraries on the design of the core public API, showcasing the "piece-meal" approach to creating a
+                    comprehensive and intuitive developer experience.</p>
+            </div>
+        </section>
+
+        <section id="roadmap" class="my-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-[#073B4C]">Roadmap to Independence</h2>
+                <p class="mt-2 text-lg text-gray-600">A phased approach ensures a stable evolution towards a fully
+                    dependency-free library.</p>
+            </div>
+            <div class="relative">
+                <div class="absolute left-1/2 -ml-0.5 w-1 h-full bg-[#118AB2] opacity-30"></div>
+                <div class="space-y-12">
+                    <div class="relative flex items-center">
+                        <div class="w-1/2 pr-8 text-right">
+                            <div class="bg-white p-6 rounded-lg shadow-lg">
+                                <h3 class="text-xl font-bold text-[#073B4C]">Phase 1: Core Functionality</h3>
+                                <p class="mt-2 text-gray-600">Implement the dual-store architecture, the bridge API, and
+                                    establish comprehensive testing.</p>
+                            </div>
+                        </div>
+                        <div
+                            class="absolute left-1/2 -ml-4 h-8 w-8 rounded-full bg-[#FF6B6B] border-4 border-white shadow-md">
+                        </div>
+                    </div>
+                    <div class="relative flex items-center">
+                        <div class="w-1/2"></div>
+                        <div class="w-1/2 pl-8">
+                            <div class="bg-white p-6 rounded-lg shadow-lg">
+                                <h3 class="text-xl font-bold text-[#073B4C]">Phase 2: Enhancements & DX</h3>
+                                <p class="mt-2 text-gray-600">Integrate Redux DevTools, implement the middleware system,
+                                    and add state persistence.</p>
+                            </div>
+                        </div>
+                        <div
+                            class="absolute left-1/2 -ml-4 h-8 w-8 rounded-full bg-[#FFD166] border-4 border-white shadow-md">
+                        </div>
+                    </div>
+                    <div class="relative flex items-center">
+                        <div class="w-1/2 pr-8 text-right">
+                            <div class="bg-white p-6 rounded-lg shadow-lg">
+                                <h3 class="text-xl font-bold text-[#073B4C]">Phase 3: Expansion & Refinement</h3>
+                                <p class="mt-2 text-gray-600">Create a full build system and begin incrementally
+                                    replacing dependencies with custom code.</p>
+                            </div>
+                        </div>
+                        <div
+                            class="absolute left-1/2 -ml-4 h-8 w-8 rounded-full bg-[#06D6A0] border-4 border-white shadow-md">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center p-8 mt-12 border-t border-slate-200">
+        <p class="text-gray-500">An infographic based on the deep research report for a hybrid state management library.
+        </p>
+    </footer>
+
+    <script>
+        const wrapLabel = (label) => {
+            const maxLength = 16
+            if (label.length <= maxLength) return label
+
+            const words = label.split(' ')
+            let lines = []
+            let currentLine = ''
+
+            words.forEach(word => {
+                if ((currentLine + word).length > maxLength && currentLine.length > 0) {
+                    lines.push(currentLine.trim())
+                    currentLine = word + ' '
+                } else {
+                    currentLine += word + ' '
+                }
+            })
+            lines.push(currentLine.trim())
+            return lines
+        }
+
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0]
+            let label = item.chart.data.labels[item.dataIndex]
+            if (Array.isArray(label)) {
+                return label.join(' ')
+            }
+            return label
+        }
+
+        const tooltipOptions = {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: tooltipTitleCallback,
+                    }
+                }
+            }
+        }
+
+        const donutChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: tooltipTitleCallback,
+                        label: function(context) {
+                            return ` ${context.dataset.label}`
+                        }
+                    }
+                }
+            }
+        }
+
+        const colors = {
+            red: '#FF6B6B',
+            yellow: '#FFD166',
+            green: '#06D6A0',
+            blue: '#118AB2',
+            darkBlue: '#073B4C',
+            slate: '#e2e8f0'
+        }
+
+        new Chart(document.getElementById('reduxChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Global Store'],
+                datasets: [{
+                    label: 'Global Store',
+                    data: [100],
+                    backgroundColor: [colors.blue],
+                    borderColor: ['#ffffff'],
+                    borderWidth: 4
+                }]
+            },
+            options: donutChartOptions
+        })
+
+        new Chart(document.getElementById('vanjsChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Scoped State'],
+                datasets: [{
+                    label: 'Scoped State',
+                    data: [100],
+                    backgroundColor: [colors.red],
+                    borderColor: ['#ffffff'],
+                    borderWidth: 4
+                }]
+            },
+            options: donutChartOptions
+        })
+
+        new Chart(document.getElementById('immutableChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Data Integrity'],
+                datasets: [{
+                    label: 'Data Integrity',
+                    data: [100],
+                    backgroundColor: [colors.green],
+                    borderColor: ['#ffffff'],
+                    borderWidth: 4
+                }]
+            },
+            options: donutChartOptions
+        })
+
+        new Chart(document.getElementById('killaChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Persistence'],
+                datasets: [{
+                    label: 'Persistence',
+                    data: [100],
+                    backgroundColor: [colors.yellow],
+                    borderColor: ['#ffffff'],
+                    borderWidth: 4
+                }]
+            },
+            options: donutChartOptions
+        })
+
+        new Chart(document.getElementById('apiInspirationChart'), {
+            type: 'polarArea',
+            data: {
+                labels: ['Redux (Global Store)', 'VanJS (Scoped State)', 'React-Redux (Bridge)', 'Immutable.js (Data)'],
+                datasets: [{
+                    label: 'API Inspiration',
+                    data: [45, 30, 15, 10],
+                    backgroundColor: [
+                        colors.blue,
+                        colors.red,
+                        colors.yellow,
+                        colors.green
+                    ],
+                    borderColor: ['#ffffff'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        grid: {
+                            color: colors.slate
+                        },
+                        ticks: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>
