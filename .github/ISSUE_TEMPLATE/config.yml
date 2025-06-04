@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-issue-config.json
+# filepath: ~/dev/stateman-cli/.github/ISSUE_TEMPLATE/config.yml
+blank_issues_enabled: true
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/dylarcher/stateman-cli/blob/main/README.md
+    about: Check the documentation before opening an issue
+  - name: 💬 Questions & Discussions
+    url: https://github.com/dylarcher/stateman-cli/discussions
+    about: Use GitHub Discussions for questions and discussions about the project
