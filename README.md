@@ -64,7 +64,7 @@ A controlled interface allows scoped components to safely read from or dispatch 
 
 The library's API design is a synthesis of familiar and powerful patterns.
 
-This chart illustrates the proportional influence of source libraries on the design of the core public API, showcasing the "piece-meal" approach to creating a comprehensive and intuitive developer experience.
+This chart illustrates the proportional influence of source libraries on the design of the core public API, showcasing the "piecemeal" approach to creating a comprehensive and intuitive developer experience.
 
 ### Roadmap to Independence
 
