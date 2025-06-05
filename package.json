@@ -1,0 +1,55 @@
+{
+  "author": "Dylan Archer <dylarcher@gmail.com> (@dylarcher)",
+  "bugs": {
+    "url": "https://github.com/dylarcher/stateman-cli/issues"
+  },
+  "dependencies": {
+    "immutable": "^4.3.6",
+    "redux": "^5.0.1",
+    "vanjs-core": "^1.5.1"
+  },
+  "description": "A comprehensive, vanilla javascript state management library.",
+  "devDependencies": {
+    "esbuild": "^0.20.2",
+    "eslint": "^8.57.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/depstate.esm.js",
+      "require": "./dist/depstate.cjs.js"
+    }
+  },
+  "homepage": "https://github.com/dylarcher/stateman-cli#readme",
+  "keywords": [
+    "state",
+    "management",
+    "cli",
+    "library",
+    "npm",
+    "javascript"
+  ],
+  "license": "MIT",
+  "main": "./dist/depstate.cjs.js",
+  "module": "./dist/depstate.esm.js",
+  "name": "stateman-cli",
+  "peerDependencies": {
+    "immutable": ">=4.0.0",
+    "redux": ">=5.0.0",
+    "vanjs-core": ">=1.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dylarcher/stateman-cli.git"
+  },
+  "scripts": {
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:cjs": "esbuild src/index.js --bundle --outfile=dist/depstate.cjs.js --format=cjs --platform=node --external:redux --external:immutable --external:vanjs-core",
+    "build:esm": "esbuild src/index.js --bundle --outfile=dist/depstate.esm.js --format=esm --platform=browser --external:redux --external:immutable --external:vanjs-core",
+    "docs:build": "echo \"Docs build process not set up\" && exit 0",
+    "docs:dev": "echo \"Docs development server not set up\" && exit 0",
+    "lint": "eslint src/**/*.js",
+    "test": "echo \"Error: no test specified yet\" && exit 0"
+  },
+  "type": "module",
+  "version": "0.1.0"
+}
