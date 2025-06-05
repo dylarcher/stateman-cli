@@ -4,7 +4,7 @@
     "url": "https://github.com/dylarcher/stateman-cli/issues"
   },
   "dependencies": {
-    "immutable": ">=4.0.0",
+    "immutable": ">=5.1.2",
     "redux": "^5.0.0",
     "vanjs-core": "^1.2.0"
   },
@@ -34,7 +34,7 @@
   "module": "./dist/depstate.esm.js",
   "name": "stateman-cli",
   "peerDependencies": {
-    "immutable": ">=4.0.0",
+    "immutable": ">=5.1.2",
     "redux": ">=5.0.0",
     "vanjs-core": ">=1.2.0"
   },
