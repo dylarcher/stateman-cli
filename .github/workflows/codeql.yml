@@ -12,7 +12,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - language: html,css,json,yaml,javascript-typescript,svg,markdown
+        - language: html
+          build-mode: Autobuild
+        - language: css
+          build-mode: Autobuild
+        - language: json
+          build-mode: Autobuild
+        - language: yaml
+          build-mode: Autobuild
+        - language: javascript-typescript
+          build-mode: Autobuild
+        - language: svg
+          build-mode: Autobuild
+        - language: markdown
           build-mode: Autobuild
     steps:
     - name: Checkout repository
