@@ -76,6 +76,41 @@ A phased approach ensures a stable evolution towards a fully dependency-free lib
 | 2 | Enhancements & DX | Integrate Redux DevTools, implement the middleware system, and add state persistence. |
 | 3 | Expansion & Refinement | Create a full build system and begin incrementally replacing dependencies with custom code. |
 
+### Folder Structure
+
+```bash
+depstate/
+├── dist/                     # Distribution files (after build)
+│   ├── depstate.esm.js       # ES Module build
+│   └── depstate.cjs.js       # CommonJS build
+├── docs/                     # Documentation files (Markdown)
+│   ├── README.md             # Main documentation entry (can be a copy of the root README)
+│   ├── Core_Concepts.md
+│   ├── Store_Portion.md
+│   ├── Scoped_State_Portion.md
+│   ├── Dependency_Injector_Portion.md
+│   ├── API_Reference.md
+│   └── Examples.md
+├── src/                      # Source code
+│   ├── index.js              # Main library entry point (exports all public APIs)
+│   ├── globalStore.js        # Logic for createGlobalStore, combineReducers
+│   ├── scopedState.js        # Logic for createScopedState, deriveScopedState
+│   ├── middleware/
+│   │   └── thunk.js          # DI-aware thunk middleware (can be imported separately)
+│   └── utils/                # Utility functions (e.g., for Immutable.js helpers, if any)
+│       └── immutableUtils.js # (Placeholder for potential Immutable.js helpers)
+├── test/                     # Unit and integration tests (examples)
+│   ├── globalStore.test.js
+│   ├── scopedState.test.js
+│   └── middleware/
+│       └── thunk.test.js
+├── .eslintrc.json           # ESLint configuration (example)
+├──.gitignore                # Git ignore file
+├── LICENSE                   # License file (e.g., MIT)
+├── package.json              # Project metadata and dependencies
+└── README.md                 # Project README
+```
+
 ---
 
 > An infographic based on the [deep research report](./research.pdf) for a hybrid state management library.
