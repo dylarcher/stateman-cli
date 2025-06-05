@@ -1,10 +1,10 @@
-name: Lint
+name: ESLint
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: 
+      - dev
+      - main
 
 jobs:
   lint:
@@ -15,8 +15,8 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18' # You can specify other versions
-    - name: Install dependencies
+        node-version: '18.x' # You can specify other versions
+    - name: Project dependency setup
       run: npm install
-    - name: Run ESLint
+    - name: Lint project source code
       run: npx eslint src/**/*.js
