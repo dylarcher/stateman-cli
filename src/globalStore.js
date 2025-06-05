@@ -42,15 +42,6 @@ function createGlobalStore(reducer, initialState, options = {}) {
     })
   }
 
-  if (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) {
-    composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
-      serialize: {
-        immutable: ImmutableMap,
-        replacer: (key, value) => (isImmutable(value) ? value.toJS() : value),
-      }
-    })
-  }
-
   const store = reduxCreateStore(
     wrappedReducer,
     initialState,
