@@ -40,7 +40,6 @@ jobs:
         category: "/language:${{matrix.language}}"
 name: "CodeQL (Advanced)"
 on:
-  push: null
   pull_request:
     branches: 
       - dev
