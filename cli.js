@@ -33,7 +33,7 @@ const globalStore = createGlobalStore(globalReducer, initialGlobalState);
 
 // --- Scoped State Example ---
 const myScopedState = createScopedState('initial_scoped_value');
-const derivedScopedState = createScopedState(0); // For bridge example
+const derivedScopedState = deriveScopedState(() => myScopedState.get().length); // Reactive derived value based on myScopedState
 const bridgedScopedState = createScopedState({ localData: 'local' }, { globalStore });
 
 
