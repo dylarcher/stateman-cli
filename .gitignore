@@ -1,3 +1,24 @@
+.DS_Store
+
+# OS generated files
+#-----------------------------------
+# macOS
+.AppleDouble
+._*
+.LSOverride
+
+# Linux
+*~
+.#*
+.swp
+.swo
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
 # Logs
 logs
 *.log
