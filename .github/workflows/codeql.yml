@@ -27,6 +27,7 @@ jobs:
     - name: Repository source code
       uses: actions/checkout@v4
     - name: NodeJS environment setup
+      if: matrix.language == 'javascript'
       uses: actions/setup-node@v3
       with:
         node-version: '18.x'
