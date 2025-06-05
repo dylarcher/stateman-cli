@@ -31,12 +31,15 @@ function createGlobalStore(reducer, initialState, options = {}) {
     return newState
   }
 
-  let composeEnhancers = (arg) => {
-    // Default pass-through if only one enhancer or no DevTools.
-    // If multiple enhancers need to be composed without DevTools, Redux's compose should be used separately by the caller.
-    if (arguments.length === 0) return undefined
-    if (typeof arg === 'function') return arg
-    return undefined // Should ideally not be reached if called as intended.
+  let composeEnhancers = compose
+
+  if (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) {
+    composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+      serialize: {
+        immutable: ImmutableMap,
+        replacer: (key, value) => (isImmutable(value) ? value.toJS() : value),
+      }
+    })
   }
 
   if (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) {
