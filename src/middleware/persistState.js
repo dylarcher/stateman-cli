@@ -1,4 +1,4 @@
-import { fromJS, isImmutable } from 'immutable';
+import { fromJS, isImmutable } from "immutable";
 
 /**
  * Debounces a function.
@@ -35,33 +35,36 @@ function debounce(func, wait) {
 export function persistStateMiddleware({
   key,
   adapter,
-  selector = state => state,
+  selector = (state) => state,
   serializer = JSON.stringify,
   throttleWait = 1000, // Default throttle to 1 second
 }) {
   if (!key || !adapter) {
-    throw new Error('Persistence middleware requires `key` and `adapter` in config.');
+    throw new Error(
+      "Persistence middleware requires `key` and `adapter` in config.",
+    );
   }
 
   const debouncedSave = debounce((stateToSave) => {
     try {
       const selectedState = selector(stateToSave);
       // If selector returns immutable, convert for serialization, common for top-level state
-      const serializableState = isImmutable(selectedState) ? selectedState.toJS() : selectedState;
+      const serializableState = isImmutable(selectedState)
+        ? selectedState.toJS()
+        : selectedState;
       adapter.setItem(key, serializer(serializableState));
     } catch (error) {
-      console.error('Error saving state to adapter:', error);
+      console.error("Error saving state to adapter:", error);
     }
   }, throttleWait);
 
-  return store => next => action => {
+  return (store) => (next) => (action) => {
     const result = next(action);
     // After action is processed and state is updated, persist it.
     debouncedSave(store.getState());
     return result;
   };
 }
-
 
 /**
  * Rehydrates the state from the storage adapter.
@@ -73,13 +76,9 @@ export function persistStateMiddleware({
  * @param {function(persistedString: string): object} [config.deserializer=JSON.parse] - Function to deserialize.
  * @returns {Immutable.Map | undefined} The rehydrated state slice (as an Immutable.Map), or undefined if not found/error.
  */
-export function rehydrateState({
-  key,
-  adapter,
-  deserializer = JSON.parse,
-}) {
+export function rehydrateState({ key, adapter, deserializer = JSON.parse }) {
   if (!key || !adapter) {
-    console.warn('Rehydration requires `key` and `adapter`.');
+    console.warn("Rehydration requires `key` and `adapter`.");
     return undefined;
   }
   try {
@@ -90,7 +89,7 @@ export function rehydrateState({
     const plainJSState = deserializer(persistedString);
     return plainJSState ? fromJS(plainJSState) : undefined;
   } catch (error) {
-    console.error('Error rehydrating state from adapter:', error);
+    console.error("Error rehydrating state from adapter:", error);
     return undefined;
   }
 }

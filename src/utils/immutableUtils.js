@@ -1,4 +1,4 @@
-import Immutable, { isImmutable as checkIsImmutable, fromJS } from 'immutable'
+import Immutable, { isImmutable as checkIsImmutable, fromJS } from "immutable";
 
 /**
  * Re-exports the entire Immutable.js library.
@@ -7,7 +7,7 @@ import Immutable, { isImmutable as checkIsImmutable, fromJS } from 'immutable'
  * or more directly if specific structures are exported from index.js:
  * import { Map, List } from 'my-library/immutable';
  */
-export { Immutable }
+export { Immutable };
 
 /**
  * Re-exports Immutable.fromJS() for converting plain JavaScript objects and arrays
@@ -17,7 +17,7 @@ export { Immutable }
  * @param {any} jsValue - The plain JavaScript value to convert.
  * @returns {T} The new immutable structure (e.g., Immutable.Map, Immutable.List).
  */
-export { fromJS }
+export { fromJS };
 
 /**
  * Re-exports Immutable.isImmutable() for checking if a value is an Immutable.js collection.
@@ -27,7 +27,7 @@ export { fromJS }
  * @param {any} maybeImmutable - The value to check.
  * @returns {boolean} True if the value is an Immutable.js collection, false otherwise.
  */
-export const isImmutable = checkIsImmutable
+export const isImmutable = checkIsImmutable;
 
 // It can also be useful to export specific Immutable types if the library intends
 // to guide users towards them, for example:
