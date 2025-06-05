@@ -12,20 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - language: html
-          build-mode: Autobuild
-        - language: css
-          build-mode: Autobuild
-        - language: json
-          build-mode: Autobuild
-        - language: yaml
+        - language: GitHub Actions
           build-mode: Autobuild
         - language: javascript-typescript
-          build-mode: Autobuild
-        - language: svg
-          build-mode: Autobuild
-        - language: markdown
-          build-mode: Autobuild
+          build-mode: none
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
