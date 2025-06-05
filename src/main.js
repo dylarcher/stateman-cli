@@ -6,14 +6,11 @@
  * leveraging Redux for global state, VanJS for scoped state, and Immutable.js for data integrity.
  */
 
-// Importing dependencies from a CDN (e.g., esm.sh)
-import Immutable from 'https://esm.sh/immutable@4.3.6'
-import {
-    createStore as createReduxStore,
-    applyMiddleware as reduxApplyMiddleware,
-    compose as reduxCompose
-} from 'https://esm.sh/redux@5.0.1'
-import van from 'https://esm.sh/vanjs-core@1.5.1'
+// Package imports
+import Immutable from 'immutable';
+import { createStore as createReduxStore, applyMiddleware as reduxApplyMiddleware, compose as reduxCompose } from 'redux';
+import van from 'vanjs-core';
+import thunk from './middleware/thunk.js';
 
 /**
  * Creates a DepState global store that holds the complete state tree of your app.
@@ -33,9 +30,8 @@ export function createGlobalStore({
     dependencies = {},
     devTools = true
 }) {
-    // Import and use the shared DI-aware thunk middleware
-    import { createThunkMiddleware } from './middleware/thunk.js';
-    const thunkMiddleware = createThunkMiddleware(dependencies);
+    // Use the imported thunk middleware
+    const thunkMiddleware = thunk.withExtraArgument(dependencies);
 
     // Prepend our thunk middleware to any user-provided middleware
     const allMiddleware = [thunkMiddleware, ...middleware]
