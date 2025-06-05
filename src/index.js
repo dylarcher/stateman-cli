@@ -1,5 +1,22 @@
-"use strict"
+/**
+ * DepState Library
+ * Main entry point
+ */
 
-// TBD
+export {
+    applyMiddleware, combineReducers, // Re-exported from Redux for convenience
+    compose // Re-exported from Redux for convenience
+    , createGlobalStore
+} from './globalStore.js'
 
-export default new Map()
+export {
+    createScopedState,
+    deriveScopedState
+} from './scopedState.js'
+
+export { default as thunk } from './middleware/thunk.js'
+export { Immutable, van }
+
+// Re-export Immutable.js and VanJS for user convenience if desired
+import Immutable from 'immutable'
+import van from 'vanjs-core'
