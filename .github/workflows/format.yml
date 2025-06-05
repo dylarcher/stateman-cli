@@ -1,10 +1,10 @@
-name: Format
+name: Prettier
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches:
+      - dev
+      - main
 
 jobs:
   format:
@@ -17,18 +17,18 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         ref: ${{ github.head_ref }} # Checkout the PR branch if it's a PR, otherwise the commit branch
 
-    - name: Set up Node.js
+    - name: NodeJS environment setup
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '18.x'
 
-    - name: Install dependencies
+    - name: Project prerequisites setup
       run: npm install
 
-    - name: Run Prettier
+    - name: Format project source code
       run: npm run format # This script will be added to package.json
 
-    - name: Commit changes
+    - name: Check-in change(s) to project
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
