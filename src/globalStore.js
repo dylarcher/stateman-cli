@@ -1,5 +1,6 @@
 import { Map as ImmutableMap, isImmutable } from 'immutable'
 import { createStore as reduxCreateStore } from 'redux'
+import { compose } from './applyMiddleware.js'
 
 /**
  * Creates a Redux-like global store that uses Immutable.js for its state.
