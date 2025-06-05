@@ -6,7 +6,7 @@
   "dependencies": {
     "immutable": ">=4.0.0",
     "redux": "^5.0.0",
-    "vanjs-core": ">=1.2.0"
+    "vanjs-core": "^1.2.0"
   },
   "description": "A comprehensive, vanilla javascript state management library.",
   "devDependencies": {
