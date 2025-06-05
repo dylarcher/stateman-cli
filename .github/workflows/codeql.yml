@@ -1,6 +1,6 @@
 # .github/workflows/codeql.yml
 
-name: Verify
+name: CodeQL Analysis
 on:
   push:
     - dev
