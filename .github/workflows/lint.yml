@@ -2,18 +2,21 @@ name: ESLint
 
 on:
   pull_request:
-    branches: 
+    branches:
       - dev
       - main
+
+  schedule:
+    - cron: '0 3 * * *' # Runs daily at 3 AM UTC
 
 jobs:
   lint:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18.x' # You can specify other versions
     - name: Project dependency setup

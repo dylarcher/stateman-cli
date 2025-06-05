@@ -1,6 +1,6 @@
-import van from 'vanjs-core';
-import { connectToGlobalStore } from './bridge.js';
-import { fromJS, isImmutable } from './utils/immutableUtils.js';
+import van from 'vanjs-core'
+import { connectToGlobalStore } from './bridge.js'
+import { fromJS, isImmutable } from './utils/immutableUtils.js'
 
 /**
  * Creates a reactive scoped state object using VanJS.
@@ -22,14 +22,14 @@ import { fromJS, isImmutable } from './utils/immutableUtils.js';
  *                   and whose initial value might be an Immutable.js structure if `useImmutable` was true.
  */
 function createScopedState(initialValue, options = {}) {
-  const { globalStore, useImmutable = false } = options;
+  const { globalStore, useImmutable = false } = options
 
-  let finalInitialValue = initialValue;
+  let finalInitialValue = initialValue
   if (useImmutable && typeof initialValue === 'object' && initialValue !== null && !isImmutable(initialValue)) {
-    finalInitialValue = fromJS(initialValue);
+    finalInitialValue = fromJS(initialValue)
   }
 
-  const scopedState = van.state(finalInitialValue);
+  const scopedState = van.state(finalInitialValue)
 
   // The previous Object.defineProperty for 'val' when useImmutable was true has been removed.
   // It was not functionally enforcing immutability on ongoing assignments due to complexities
@@ -37,10 +37,10 @@ function createScopedState(initialValue, options = {}) {
   // The 'useImmutable' option now solely pertains to the conversion of the initialValue.
 
   if (globalStore) {
-    connectToGlobalStore(scopedState, globalStore);
+    connectToGlobalStore(scopedState, globalStore)
   }
 
-  return scopedState;
+  return scopedState
 }
 
 /**
@@ -56,12 +56,12 @@ function createScopedState(initialValue, options = {}) {
  * @returns {object} A VanJS derived state object. If globalStore is provided, it might be augmented with bridge methods.
  */
 function deriveScopedState(derivationFn, options = {}) {
-  const derivedState = van.derive(derivationFn);
+  const derivedState = van.derive(derivationFn)
   if (options.globalStore) {
     // Attaching bridge to derivedState directly. Use cases might be limited.
-    connectToGlobalStore(derivedState, options.globalStore);
+    connectToGlobalStore(derivedState, options.globalStore)
   }
-  return derivedState;
+  return derivedState
 }
 
-export { createScopedState, deriveScopedState };
+export { createScopedState, deriveScopedState }

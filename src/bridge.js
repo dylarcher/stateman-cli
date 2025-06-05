@@ -1,5 +1,5 @@
-import { isImmutable } from 'immutable';
-import van from 'vanjs-core';
+import { isImmutable } from 'immutable'
+import van from 'vanjs-core'
 
 /**
  * Attaches global store interaction methods to a scoped state's context.
@@ -10,8 +10,8 @@ import van from 'vanjs-core';
  */
 export function connectToGlobalStore(scopedState, globalStore) {
   if (!globalStore || typeof globalStore.getState !== 'function' || typeof globalStore.dispatch !== 'function') {
-    console.warn('Invalid globalStore instance provided for bridging.');
-    return;
+    console.warn('Invalid globalStore instance provided for bridging.')
+    return
   }
 
   /**
@@ -23,14 +23,14 @@ export function connectToGlobalStore(scopedState, globalStore) {
    */
   scopedState.getGlobal = (selectorFn) => {
     if (typeof selectorFn !== 'function') {
-      throw new Error('selectorFn must be a function for getGlobal.');
+      throw new Error('selectorFn must be a function for getGlobal.')
     }
-    const globalState = globalStore.getState();
+    const globalState = globalStore.getState()
     if (!isImmutable(globalState)) {
-      console.warn('Global state is not an Immutable.js structure. Bridge functionality may not work as expected.');
+      console.warn('Global state is not an Immutable.js structure. Bridge functionality may not work as expected.')
     }
-    return selectorFn(globalState);
-  };
+    return selectorFn(globalState)
+  }
 
   /**
    * Dispatches an action to the connected global store.
@@ -38,8 +38,8 @@ export function connectToGlobalStore(scopedState, globalStore) {
    * @returns {object} The dispatched action.
    */
   scopedState.dispatchGlobal = (action) => {
-    return globalStore.dispatch(action);
-  };
+    return globalStore.dispatch(action)
+  }
 
   /**
    * Subscribes to changes in a selected slice of the global state.
@@ -51,29 +51,29 @@ export function connectToGlobalStore(scopedState, globalStore) {
    */
   scopedState.subscribeToGlobal = (selectorFn, callback) => {
     if (typeof selectorFn !== 'function') {
-      throw new Error('selectorFn must be a function for subscribeToGlobal.');
+      throw new Error('selectorFn must be a function for subscribeToGlobal.')
     }
     if (typeof callback !== 'function') {
-      throw new Error('callback must be a function for subscribeToGlobal.');
+      throw new Error('callback must be a function for subscribeToGlobal.')
     }
 
-    let lastSelectedState = selectorFn(globalStore.getState());
+    let lastSelectedState = selectorFn(globalStore.getState())
 
     const unsubscribe = globalStore.subscribe(() => {
-      const newSelectedState = selectorFn(globalStore.getState());
+      const newSelectedState = selectorFn(globalStore.getState())
 
       // Refactored change detection from previous version for clarity
       const hasChanged = (isImmutable(lastSelectedState) && isImmutable(newSelectedState))
         ? !lastSelectedState.equals(newSelectedState)
-        : lastSelectedState !== newSelectedState;
+        : lastSelectedState !== newSelectedState
 
       if (hasChanged) {
-        lastSelectedState = newSelectedState;
-        callback(newSelectedState);
+        lastSelectedState = newSelectedState
+        callback(newSelectedState)
       }
-    });
-    return unsubscribe;
-  };
+    })
+    return unsubscribe
+  }
 
   /**
    * Creates a reactive VanJS state that reflects a selected slice of the global state.
@@ -88,35 +88,35 @@ export function connectToGlobalStore(scopedState, globalStore) {
    */
   scopedState.createGlobalStateSelector = (selectorFn, options = {}) => {
     if (typeof selectorFn !== 'function') {
-      throw new Error('selectorFn must be a function for createGlobalStateSelector.');
+      throw new Error('selectorFn must be a function for createGlobalStateSelector.')
     }
 
-    const { areEqual } = options;
-    const initialSelectedData = selectorFn(globalStore.getState());
-    const reactiveGlobalState = van.state(initialSelectedData);
+    const { areEqual } = options
+    const initialSelectedData = selectorFn(globalStore.getState())
+    const reactiveGlobalState = van.state(initialSelectedData)
 
-    let lastSelectedStateForVan = initialSelectedData;
+    let lastSelectedStateForVan = initialSelectedData
 
     globalStore.subscribe(() => {
-      const newSelectedState = selectorFn(globalStore.getState());
-      let changed = false;
+      const newSelectedState = selectorFn(globalStore.getState())
+      let changed = false
       if (typeof areEqual === 'function') {
-        changed = !areEqual(lastSelectedStateForVan, newSelectedState);
+        changed = !areEqual(lastSelectedStateForVan, newSelectedState)
       } else {
         changed = (isImmutable(lastSelectedStateForVan) && isImmutable(newSelectedState))
           ? !lastSelectedStateForVan.equals(newSelectedState)
-          : lastSelectedStateForVan !== newSelectedState;
+          : lastSelectedStateForVan !== newSelectedState
       }
 
       if (changed) {
-        lastSelectedStateForVan = newSelectedState;
-        reactiveGlobalState.val = newSelectedState;
+        lastSelectedStateForVan = newSelectedState
+        reactiveGlobalState.val = newSelectedState
       }
-    });
+    })
     // Note on unsubscribe: As mentioned in the prompt, this basic implementation
     // doesn't return the unsubscribe function from globalStore.subscribe.
     // For long-lived scoped states that might be destroyed before the global store,
     // managing this subscription would be important in a production library.
-    return reactiveGlobalState;
-  };
+    return reactiveGlobalState
+  }
 }
