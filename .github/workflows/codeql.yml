@@ -1,7 +1,8 @@
+name: Verify
 on: push
 jobs:
   analyze:
-    name: Verify (${{ matrix.language }})
+    name: Check (${{ matrix.language }})
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -23,7 +24,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18.x'
-    - name: CodeQL scan setup
+    - name: CodeQL environment setup
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
