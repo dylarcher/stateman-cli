@@ -3,20 +3,23 @@
  * Main entry point
  */
 
+// Export core functionalities from main.js
 export {
-    applyMiddleware, combineReducers, // Re-exported from Redux for convenience
-    compose // Re-exported from Redux for convenience
-    , createGlobalStore
-} from './globalStore.js'
-
-export {
+    createGlobalStore,
+    combineReducers,
+    applyMiddleware, // Re-exported from main.js, originally from Redux
+    compose,         // Re-exported from main.js, originally from Redux
     createScopedState,
     deriveScopedState
-} from './scopedState.js'
+} from './main.js';
 
-export { default as thunk } from './middleware/thunk.js'
-export { Immutable, van }
+// Export middleware
+export { default as thunk } from './middleware/thunk.js';
 
 // Re-export Immutable.js and VanJS for user convenience if desired
-import Immutable from 'immutable'
-import van from 'vanjs-core'
+// These are also exported from main.js, but exporting them here directly
+// aligns with the original structure and build process (marked as external).
+import Immutable from 'immutable';
+import van from 'vanjs-core';
+
+export { Immutable, van };

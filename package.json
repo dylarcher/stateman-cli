@@ -45,10 +45,10 @@
     "build": "npm run build:esm && npm run build:cjs",
     "build:cjs": "esbuild src/index.js --bundle --outfile=dist/depstate.cjs.js --format=cjs --platform=node --external:redux --external:immutable --external:vanjs-core",
     "build:esm": "esbuild src/index.js --bundle --outfile=dist/depstate.esm.js --format=esm --platform=browser --external:redux --external:immutable --external:vanjs-core",
-    "docs:build": "echo \"Docs build process not set up\" && exit 0",
-    "docs:dev": "echo \"Docs development server not set up\" && exit 0",
+    "docs:build": "echo \"Docs build process not yet implemented. Consider using a static site generator like VitePress or Docusaurus.\" && exit 0",
+    "docs:dev": "echo \"Docs development server not yet implemented. Consider using a static site generator like VitePress or Docusaurus.\" && exit 0",
     "lint": "eslint src/**/*.js",
-    "test": "echo \"Error: no test specified yet\" && exit 0"
+    "test": "node test/main.test.js"
   },
   "type": "module",
   "version": "0.1.0"
