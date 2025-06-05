@@ -2,9 +2,12 @@ name: ESLint
 
 on:
   pull_request:
-    branches: 
+    branches:
       - dev
       - main
+
+  schedule:
+    - cron: '0 3 * * *' # Runs daily at 3 AM UTC
 
 jobs:
   lint:

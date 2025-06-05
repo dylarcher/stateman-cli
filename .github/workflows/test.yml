@@ -6,17 +6,23 @@ on:
       - dev
       - main
 
+  schedule:
+    - cron: '0 4 * * *' # Runs daily at 4 AM UTC
+
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
+
     - name: NodeJS environment setup
       uses: actions/setup-node@v3
       with:
         node-version: '18.x' # You can specify other versions
+
     - name: NodeJS dependency setup
       run: npm install
+
     - name: Test project source code
       run: npm test
