@@ -1,18 +1,13 @@
 /**
- * DepState DI-Aware Thunk Middleware
+ * A simple thunk middleware.
+ * Allows action creators to return a function instead of an action object.
+ * The returned function (thunk) receives `dispatch` and `getState` as arguments.
  */
-function createThunkMiddleware(extraArgument) {
-  return ({ dispatch, getState }) =>
-    (next) =>
-    (action) => {
-      if (typeof action === "function") {
-        return action(dispatch, getState, extraArgument);
-      }
-      return next(action);
-    };
-}
-
-const thunk = createThunkMiddleware();
-thunk.withExtraArgument = createThunkMiddleware;
+const thunk = store => next => action => {
+  if (typeof action === 'function') {
+    return action(store.dispatch, store.getState);
+  }
+  return next(action);
+};
 
 export default thunk;

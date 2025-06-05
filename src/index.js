@@ -1,25 +1,31 @@
+// Global Store
+export { createGlobalStore } from './globalStore.js';
+
+// Scoped State
+export { createScopedState, deriveScopedState } from './scopedState.js';
+
+// Immutability Utilities
+// Exporting the namespace and specific functions for convenience
+export { Immutable, fromJS, isImmutable } from './utils/immutableUtils.js';
+// Users can also access specific Immutable types like Map, List via the Immutable namespace:
+// import { Immutable } from 'my-library'; const myMap = Immutable.Map();
+import applyMiddleware from "./applyMiddleware.js";
+
+// Middleware (Placeholder for now)
 /**
- * DepState Library
- * Main entry point
+ * Placeholder for applyMiddleware. Full implementation in Phase 2.
+ * This function will enhance the global store with middleware capabilities.
+ * @param {...function} middlewares - The middleware functions to apply.
+ * @returns {function} A store enhancer.
  */
 
-// Export core functionalities from main.js
-export {
-    createGlobalStore,
-    combineReducers,
-    applyMiddleware, // Re-exported from main.js, originally from Redux
-    compose,         // Re-exported from main.js, originally from Redux
-    createScopedState,
-    deriveScopedState
-} from './main.js';
+/**
+ * Composes single-argument functions from right to left.
+ * This is a basic version of compose, often found in Redux.
+ * @param {...function} funcs The functions to compose.
+ * @returns {function} A function composed of the input functions.
+ */
 
-// Export middleware
-export { default as thunk } from './middleware/thunk.js';
-
-// Re-export Immutable.js and VanJS for user convenience if desired
-// These are also exported from main.js, but exporting them here directly
-// aligns with the original structure and build process (marked as external).
-import Immutable from 'immutable';
-import van from 'vanjs-core';
-
-export { Immutable, van };
+// Persistence Utilities
+export { persistStateMiddleware, rehydrateState } from './middleware/persistState.js';
+export { default as localStorageAdapter } from './persistence/localStorageAdapter.js';
