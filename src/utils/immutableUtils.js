@@ -1,4 +1,4 @@
-import Immutable, { fromJS, isImmutable as checkIsImmutable } from "immutable";
+import Immutable, { isImmutable as checkIsImmutable, fromJS } from "immutable";
 
 /**
  * Re-exports the entire Immutable.js library.
