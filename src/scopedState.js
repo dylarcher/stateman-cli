@@ -1,53 +1,67 @@
-import van from 'vanjs-core';
-import { connectToGlobalStore } from './bridge.js';
+import van from 'vanjs-core'
+import { connectToGlobalStore } from './bridge.js'
+import { fromJS, isImmutable } from './utils/immutableUtils.js'
 
 /**
  * Creates a reactive scoped state object using VanJS.
  * If a globalStore is provided in options, bridge methods will be attached.
+ * Can optionally convert plain object/array initialValue to an Immutable.js structure.
  *
  * @template T
  * @param {T} initialValue - The initial value for the state.
  * @param {object} [options] - Options for the scoped state.
  * @param {object} [options.globalStore] - An instance of the global store to connect to.
- * @returns {object} A VanJS state object, potentially augmented with global interaction methods
- *                   (`getGlobal`, `dispatchGlobal`, `subscribeToGlobal`).
+ * @param {boolean} [options.useImmutable=false] - If true, and `initialValue` is a plain JavaScript object or array,
+ *                                               it is converted to an Immutable.js structure upon creation.
+ *                                               This option *only* affects the initial value conversion.
+ *                                               Subsequent assignments to `scopedState.val` are NOT automatically
+ *                                               converted to immutable structures by this option; users must
+ *                                               manage ongoing immutability themselves if desired by assigning
+ *                                               Immutable.js objects to `.val`.
+ * @returns {object} A VanJS state object, potentially augmented with global interaction methods,
+ *                   and whose initial value might be an Immutable.js structure if `useImmutable` was true.
  */
 function createScopedState(initialValue, options = {}) {
-  const scopedState = van.state(initialValue);
+  const { globalStore, useImmutable = false } = options
 
-  if (options.globalStore) {
-    connectToGlobalStore(scopedState, options.globalStore);
+  let finalInitialValue = initialValue
+  if (useImmutable && typeof initialValue === 'object' && initialValue !== null && !isImmutable(initialValue)) {
+    finalInitialValue = fromJS(initialValue)
   }
 
-  return scopedState;
+  const scopedState = van.state(finalInitialValue)
+
+  // The previous Object.defineProperty for 'val' when useImmutable was true has been removed.
+  // It was not functionally enforcing immutability on ongoing assignments due to complexities
+  // with overriding VanJS's native .val setter without recreating its reactivity.
+  // The 'useImmutable' option now solely pertains to the conversion of the initialValue.
+
+  if (globalStore) {
+    connectToGlobalStore(scopedState, globalStore)
+  }
+
+  return scopedState
 }
 
 /**
  * Creates a derived state object using VanJS.
  * Its value is computed by the derivationFn based on other state objects.
- * If a globalStore is provided in options, bridge methods can be attached
- * (though direct bridge methods on derived states are less common, they might access global state via their derivationFn).
  *
  * @template T
  * @param {function(): T} derivationFn - A function that computes the derived value.
+ *                                     It should depend on other VanJS state objects.
  * @param {object} [options] - Options for the derived state.
  * @param {object} [options.globalStore] - An instance of the global store, if the derivationFn needs to establish bridge capabilities
- *                                         on the derived state itself (less common).
- * @returns {object} A VanJS derived state object. If globalStore is provided, it might be augmented.
+ *                                         on the derived state itself (less common, as bridge methods are typically on the source states).
+ * @returns {object} A VanJS derived state object. If globalStore is provided, it might be augmented with bridge methods.
  */
 function deriveScopedState(derivationFn, options = {}) {
-  const derivedState = van.derive(derivationFn);
-
-  // Typically, derived states get global data via their derivation function accessing
-  // a bridged scopedState. However, if direct global interaction on the derived state
-  // itself is needed, the bridge could be connected here too.
+  const derivedState = van.derive(derivationFn)
   if (options.globalStore) {
-    // Attaching bridge to derivedState directly. Use cases might be limited
-    // as derived states are primarily for reading/reacting.
-    connectToGlobalStore(derivedState, options.globalStore);
+    // Attaching bridge to derivedState directly. Use cases might be limited.
+    connectToGlobalStore(derivedState, options.globalStore)
   }
-
-  return derivedState;
+  return derivedState
 }
 
-export { createScopedState, deriveScopedState };
+export { createScopedState, deriveScopedState }

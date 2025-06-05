@@ -1,10 +1,11 @@
 import { isImmutable } from 'immutable'
+import van from 'vanjs-core'
 
 /**
  * Attaches global store interaction methods to a scoped state's context.
  * This function is intended to be used internally by createScopedState.
  *
- * @param {object} scopedState - The VanJS state object.
+ * @param {object} scopedState - The VanJS state object (or any object to attach methods to).
  * @param {object} globalStore - The global store instance (from createGlobalStore).
  */
 export function connectToGlobalStore(scopedState, globalStore) {
@@ -22,11 +23,10 @@ export function connectToGlobalStore(scopedState, globalStore) {
    */
   scopedState.getGlobal = (selectorFn) => {
     if (typeof selectorFn !== 'function') {
-      throw new Error('selectorFn must be a function.')
+      throw new Error('selectorFn must be a function for getGlobal.')
     }
     const globalState = globalStore.getState()
     if (!isImmutable(globalState)) {
-      // This should ideally not happen if globalStore is correctly implemented
       console.warn('Global state is not an Immutable.js structure. Bridge functionality may not work as expected.')
     }
     return selectorFn(globalState)
@@ -51,39 +51,72 @@ export function connectToGlobalStore(scopedState, globalStore) {
    */
   scopedState.subscribeToGlobal = (selectorFn, callback) => {
     if (typeof selectorFn !== 'function') {
-      throw new Error('selectorFn must be a function.')
+      throw new Error('selectorFn must be a function for subscribeToGlobal.')
     }
     if (typeof callback !== 'function') {
-      throw new Error('callback must be a function.')
+      throw new Error('callback must be a function for subscribeToGlobal.')
     }
 
     let lastSelectedState = selectorFn(globalStore.getState())
 
     const unsubscribe = globalStore.subscribe(() => {
       const newSelectedState = selectorFn(globalStore.getState())
-      // Perform a shallow comparison for primitives or an Immutable.is comparison for immutable objects.
-      // More complex objects might need deeper comparison logic if not immutable.
-      const const_immutable_check = isImmutable(lastSelectedState) && isImmutable(newSelectedState)
-      const const_primitive_check = !(typeof lastSelectedState === 'object' && lastSelectedState !== null) && !(typeof newSelectedState === 'object' && newSelectedState !== null)
 
-      if (const_immutable_check ? !lastSelectedState.equals(newSelectedState) : (const_primitive_check ? lastSelectedState !== newSelectedState : true)) {
-        // Fallback to true if not immutable or primitive, to always call callback, or implement a deep comparison.
-        // For now, if not immutable, we'll assume it changed if references are different or rely on a simple primitive check.
-        // A more robust solution for plain JS objects would be a deep equality check or require selectors to return primitives/immutables.
-        if (isImmutable(lastSelectedState) && isImmutable(newSelectedState)) {
-          if (!lastSelectedState.equals(newSelectedState)) {
-            lastSelectedState = newSelectedState
-            callback(newSelectedState)
-          }
-        } else if (lastSelectedState !== newSelectedState) {
-          // This basic check works for primitives and for object references if the selector always returns a new object on change.
-          // For complex mutable objects returned by selectors, this might trigger too often or not at all if the object is mutated in place.
-          // Best practice: selectors should return immutable data or primitives.
-          lastSelectedState = newSelectedState
-          callback(newSelectedState)
-        }
+      // Refactored change detection from previous version for clarity
+      const hasChanged = (isImmutable(lastSelectedState) && isImmutable(newSelectedState))
+        ? !lastSelectedState.equals(newSelectedState)
+        : lastSelectedState !== newSelectedState
+
+      if (hasChanged) {
+        lastSelectedState = newSelectedState
+        callback(newSelectedState)
       }
     })
     return unsubscribe
+  }
+
+  /**
+   * Creates a reactive VanJS state that reflects a selected slice of the global state.
+   * The VanJS state automatically updates when the selected global data changes.
+   * @template S
+   * @param {function(Immutable.Map): S} selectorFn - A function that selects data from the global state.
+   * @param {object} [options] - Optional parameters.
+   * @param {function(S, S): boolean} [options.areEqual] - Optional custom equality function to determine
+   *                                                      if the selected state has changed.
+   *                                                      Defaults to Immutable.is for immutables or === for primitives.
+   * @returns {van.State<S>} A VanJS state object whose .val property holds the selected global data.
+   */
+  scopedState.createGlobalStateSelector = (selectorFn, options = {}) => {
+    if (typeof selectorFn !== 'function') {
+      throw new Error('selectorFn must be a function for createGlobalStateSelector.')
+    }
+
+    const { areEqual } = options
+    const initialSelectedData = selectorFn(globalStore.getState())
+    const reactiveGlobalState = van.state(initialSelectedData)
+
+    let lastSelectedStateForVan = initialSelectedData
+
+    globalStore.subscribe(() => {
+      const newSelectedState = selectorFn(globalStore.getState())
+      let changed = false
+      if (typeof areEqual === 'function') {
+        changed = !areEqual(lastSelectedStateForVan, newSelectedState)
+      } else {
+        changed = (isImmutable(lastSelectedStateForVan) && isImmutable(newSelectedState))
+          ? !lastSelectedStateForVan.equals(newSelectedState)
+          : lastSelectedStateForVan !== newSelectedState
+      }
+
+      if (changed) {
+        lastSelectedStateForVan = newSelectedState
+        reactiveGlobalState.val = newSelectedState
+      }
+    })
+    // Note on unsubscribe: As mentioned in the prompt, this basic implementation
+    // doesn't return the unsubscribe function from globalStore.subscribe.
+    // For long-lived scoped states that might be destroyed before the global store,
+    // managing this subscription would be important in a production library.
+    return reactiveGlobalState
   }
 }
