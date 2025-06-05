@@ -1,10 +1,10 @@
-name: Test
+name: Unit test
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches:
+      - dev
+      - main
 
 jobs:
   test:
@@ -12,11 +12,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Node.js
+    - name: NodeJS environment setup
       uses: actions/setup-node@v3
       with:
-        node-version: '18' # You can specify other versions
-    - name: Install dependencies
+        node-version: '18.x' # You can specify other versions
+    - name: NodeJS dependency setup
       run: npm install
-    - name: Run tests
+    - name: Test project source code
       run: npm test
