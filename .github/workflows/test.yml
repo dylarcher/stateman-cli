@@ -1,4 +1,4 @@
-name: Units<Non-E2E>
+name: Suite
 
 on:
   pull_request:

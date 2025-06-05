@@ -1,12 +1,5 @@
 name: CodeQL Analysis
-on:
-  push:
-    - dev
-    - main
-    - release
-
-  schedule:
-    - cron: '0 1 * * *' # Runs daily at 1 AM UTC
+on: [pull_request,workflow_dispatch]
 
 jobs:
   analyze:
