@@ -1,4 +1,4 @@
-name: Unit test
+name: Units<Non-E2E>
 
 on:
   pull_request:
