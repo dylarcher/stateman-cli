@@ -1,9 +1,14 @@
-import Immutable, { isImmutable as checkIsImmutable, fromJS, List, Map } from 'immutable'
+import Immutable, {
+  isImmutable as checkIsImmutable,
+  fromJS,
+  List,
+  Map,
+} from "immutable";
 
 /**
  * Re-exports the entire Immutable.js library.
  */
-export { Immutable }
+export { Immutable };
 
 /**
  * Re-exports Immutable.fromJS() for converting plain JavaScript objects and arrays
@@ -12,14 +17,14 @@ export { Immutable }
  * @param {any} jsValue - The plain JavaScript value to convert.
  * @returns {T} The new immutable structure (e.g., Immutable.Map, Immutable.List).
  */
-export { fromJS }
+export { fromJS };
 
 /**
  * Re-exports Immutable.isImmutable() for checking if a value is an Immutable.js collection.
  * @param {any} maybeImmutable - The value to check.
  * @returns {boolean} True if the value is an Immutable.js collection, false otherwise.
  */
-export const isImmutable = checkIsImmutable
+export const isImmutable = checkIsImmutable;
 
 /**
  * Safely gets a value from an Immutable collection.
@@ -31,10 +36,12 @@ export const isImmutable = checkIsImmutable
  */
 export function safeGet(collection, key, defaultValue) {
   if (!isImmutable(collection)) {
-    console.warn('safeGet called on a non-immutable collection. Attempting to convert fromJS.')
-    collection = fromJS(collection)
+    console.warn(
+      "safeGet called on a non-immutable collection. Attempting to convert fromJS.",
+    );
+    collection = fromJS(collection);
   }
-  return collection.get(key, defaultValue)
+  return collection.get(key, defaultValue);
 }
 
 /**
@@ -47,10 +54,12 @@ export function safeGet(collection, key, defaultValue) {
  */
 export function safeGetIn(collection, path, defaultValue) {
   if (!isImmutable(collection)) {
-    console.warn('safeGetIn called on a non-immutable collection. Attempting to convert fromJS.')
-    collection = fromJS(collection)
+    console.warn(
+      "safeGetIn called on a non-immutable collection. Attempting to convert fromJS.",
+    );
+    collection = fromJS(collection);
   }
-  return collection.getIn(path, defaultValue)
+  return collection.getIn(path, defaultValue);
 }
 
 /**
@@ -64,10 +73,12 @@ export function safeGetIn(collection, path, defaultValue) {
  */
 export function safeSet(collection, key, value) {
   if (!isImmutable(collection)) {
-    console.warn('safeSet called on a non-immutable collection. Attempting to convert fromJS.')
-    collection = fromJS(collection)
+    console.warn(
+      "safeSet called on a non-immutable collection. Attempting to convert fromJS.",
+    );
+    collection = fromJS(collection);
   }
-  return collection.set(key, value)
+  return collection.set(key, value);
 }
 
 /**
@@ -81,10 +92,12 @@ export function safeSet(collection, key, value) {
  */
 export function safeSetIn(collection, path, value) {
   if (!isImmutable(collection)) {
-    console.warn('safeSetIn called on a non-immutable collection. Attempting to convert fromJS.')
-    collection = fromJS(collection)
+    console.warn(
+      "safeSetIn called on a non-immutable collection. Attempting to convert fromJS.",
+    );
+    collection = fromJS(collection);
   }
-  return collection.setIn(path, value)
+  return collection.setIn(path, value);
 }
 
 /**
@@ -98,10 +111,12 @@ export function safeSetIn(collection, path, value) {
  */
 export function safeUpdate(collection, key, updaterFn) {
   if (!isImmutable(collection)) {
-    console.warn('safeUpdate called on a non-immutable collection. Attempting to convert fromJS.')
-    collection = fromJS(collection)
+    console.warn(
+      "safeUpdate called on a non-immutable collection. Attempting to convert fromJS.",
+    );
+    collection = fromJS(collection);
   }
-  return collection.update(key, updaterFn)
+  return collection.update(key, updaterFn);
 }
 
 /**
@@ -115,10 +130,12 @@ export function safeUpdate(collection, key, updaterFn) {
  */
 export function safeUpdateIn(collection, path, updaterFn) {
   if (!isImmutable(collection)) {
-    console.warn('safeUpdateIn called on a non-immutable collection. Attempting to convert fromJS.')
-    collection = fromJS(collection)
+    console.warn(
+      "safeUpdateIn called on a non-immutable collection. Attempting to convert fromJS.",
+    );
+    collection = fromJS(collection);
   }
-  return collection.updateIn(path, updaterFn)
+  return collection.updateIn(path, updaterFn);
 }
 
 /**
@@ -131,10 +148,12 @@ export function safeUpdateIn(collection, path, updaterFn) {
  */
 export function toggleIn(collection, path) {
   if (!isImmutable(collection)) {
-    console.warn('toggleIn called on a non-immutable collection. Attempting to convert fromJS.')
-    collection = fromJS(collection)
+    console.warn(
+      "toggleIn called on a non-immutable collection. Attempting to convert fromJS.",
+    );
+    collection = fromJS(collection);
   }
-  return collection.updateIn(path, val => !val)
+  return collection.updateIn(path, (val) => !val);
 }
 
 /**
@@ -145,15 +164,19 @@ export function toggleIn(collection, path) {
  * @returns {Immutable.List} The new Immutable.List with the value pushed.
  */
 export function pushValue(list, value) {
-  let targetList
+  let targetList;
   if (!List.isList(list)) {
-    console.warn('pushValue called on a non-List. Attempting to convert fromJS, then to List.')
-    const immutableCollection = fromJS(list)
-    targetList = List.isList(immutableCollection) ? immutableCollection : List()
+    console.warn(
+      "pushValue called on a non-List. Attempting to convert fromJS, then to List.",
+    );
+    const immutableCollection = fromJS(list);
+    targetList = List.isList(immutableCollection)
+      ? immutableCollection
+      : List();
   } else {
-    targetList = list
+    targetList = list;
   }
-  return targetList.push(value)
+  return targetList.push(value);
 }
 
 /**
@@ -164,15 +187,19 @@ export function pushValue(list, value) {
  * @returns {Immutable.List} The new Immutable.List with the value removed.
  */
 export function removeValue(list, index) {
-  let targetList
+  let targetList;
   if (!List.isList(list)) {
-    console.warn('removeValue called on a non-List. Attempting to convert fromJS, then to List.')
-    const immutableCollection = fromJS(list)
-    targetList = List.isList(immutableCollection) ? immutableCollection : List()
+    console.warn(
+      "removeValue called on a non-List. Attempting to convert fromJS, then to List.",
+    );
+    const immutableCollection = fromJS(list);
+    targetList = List.isList(immutableCollection)
+      ? immutableCollection
+      : List();
   } else {
-    targetList = list
+    targetList = list;
   }
-  return targetList.delete(index)
+  return targetList.delete(index);
 }
 
-export { List, Map }
+export { List, Map };

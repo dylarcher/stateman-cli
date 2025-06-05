@@ -1,4 +1,4 @@
-import { fromJS, isImmutable } from 'immutable'
+import { fromJS, isImmutable } from "immutable";
 
 /**
  * Debounces a function.
@@ -7,15 +7,15 @@ import { fromJS, isImmutable } from 'immutable'
  * @returns {function} The debounced function.
  */
 function debounce(func, wait) {
-  let timeout
+  let timeout;
   return function executedFunction(...args) {
     const later = () => {
-      clearTimeout(timeout)
-      func(...args)
-    }
-    clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-  }
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
 
 /**
@@ -35,31 +35,35 @@ function debounce(func, wait) {
 export function persistStateMiddleware({
   key,
   adapter,
-  selector = state => state,
+  selector = (state) => state,
   serializer = JSON.stringify,
   throttleWait = 1000, // Default throttle to 1 second
 }) {
   if (!key || !adapter) {
-    throw new Error('Persistence middleware requires `key` and `adapter` in config.')
+    throw new Error(
+      "Persistence middleware requires `key` and `adapter` in config.",
+    );
   }
 
   const debouncedSave = debounce((stateToSave) => {
     try {
-      const selectedState = selector(stateToSave)
+      const selectedState = selector(stateToSave);
       // If selector returns immutable, convert for serialization, common for top-level state
-      const serializableState = isImmutable(selectedState) ? selectedState.toJS() : selectedState
-      adapter.setItem(key, serializer(serializableState))
+      const serializableState = isImmutable(selectedState)
+        ? selectedState.toJS()
+        : selectedState;
+      adapter.setItem(key, serializer(serializableState));
     } catch (error) {
-      console.error('Error saving state to adapter:', error)
+      console.error("Error saving state to adapter:", error);
     }
-  }, throttleWait)
+  }, throttleWait);
 
-  return store => next => action => {
-    const result = next(action)
+  return (store) => (next) => (action) => {
+    const result = next(action);
     // After action is processed and state is updated, persist it.
-    debouncedSave(store.getState())
-    return result
-  }
+    debouncedSave(store.getState());
+    return result;
+  };
 }
 
 /**
@@ -72,24 +76,20 @@ export function persistStateMiddleware({
  * @param {function(persistedString: string): object} [config.deserializer=JSON.parse] - Function to deserialize.
  * @returns {Immutable.Map | undefined} The rehydrated state slice (as an Immutable.Map), or undefined if not found/error.
  */
-export function rehydrateState({
-  key,
-  adapter,
-  deserializer = JSON.parse,
-}) {
+export function rehydrateState({ key, adapter, deserializer = JSON.parse }) {
   if (!key || !adapter) {
-    console.warn('Rehydration requires `key` and `adapter`.')
-    return undefined
+    console.warn("Rehydration requires `key` and `adapter`.");
+    return undefined;
   }
   try {
-    const persistedString = adapter.getItem(key)
+    const persistedString = adapter.getItem(key);
     if (persistedString === undefined || persistedString === null) {
-      return undefined
+      return undefined;
     }
-    const plainJSState = deserializer(persistedString)
-    return plainJSState ? fromJS(plainJSState) : undefined
+    const plainJSState = deserializer(persistedString);
+    return plainJSState ? fromJS(plainJSState) : undefined;
   } catch (error) {
-    console.error('Error rehydrating state from adapter:', error)
-    return undefined
+    console.error("Error rehydrating state from adapter:", error);
+    return undefined;
   }
 }

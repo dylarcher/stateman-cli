@@ -1,4 +1,4 @@
-import van from 'vanjs-core';
+import van from "vanjs-core";
 
 /**
  * @file DOM Binding Utilities for VanJS states.
@@ -13,8 +13,15 @@ import van from 'vanjs-core';
  * @returns {void}
  */
 export function bindProperty(element, propertyName, scopedState) {
-  if (!element || typeof propertyName !== 'string' || !scopedState || typeof scopedState.val === 'undefined') {
-    console.error('Invalid arguments for bindProperty: element, propertyName, and scopedState (with .val) are required.');
+  if (
+    !element ||
+    typeof propertyName !== "string" ||
+    !scopedState ||
+    typeof scopedState.val === "undefined"
+  ) {
+    console.error(
+      "Invalid arguments for bindProperty: element, propertyName, and scopedState (with .val) are required.",
+    );
     return;
   }
   van.derive(() => {
@@ -30,14 +37,21 @@ export function bindProperty(element, propertyName, scopedState) {
  * @returns {void}
  */
 export function bindAttribute(element, attributeName, scopedState) {
-  if (!element || typeof attributeName !== 'string' || !scopedState || typeof scopedState.val === 'undefined') {
-    console.error('Invalid arguments for bindAttribute: element, attributeName, and scopedState (with .val) are required.');
+  if (
+    !element ||
+    typeof attributeName !== "string" ||
+    !scopedState ||
+    typeof scopedState.val === "undefined"
+  ) {
+    console.error(
+      "Invalid arguments for bindAttribute: element, attributeName, and scopedState (with .val) are required.",
+    );
     return;
   }
   van.derive(() => {
-    if (typeof scopedState.val === 'boolean') {
+    if (typeof scopedState.val === "boolean") {
       if (scopedState.val) {
-        element.setAttribute(attributeName, '');
+        element.setAttribute(attributeName, "");
       } else {
         element.removeAttribute(attributeName);
       }
@@ -54,7 +68,7 @@ export function bindAttribute(element, attributeName, scopedState) {
  * @returns {void}
  */
 export function bindTextContent(element, scopedState) {
-  bindProperty(element, 'textContent', scopedState);
+  bindProperty(element, "textContent", scopedState);
 }
 
 /**
@@ -65,8 +79,14 @@ export function bindTextContent(element, scopedState) {
  * @returns {void}
  */
 export function bindChildren(parentElement, scopedState) {
-  if (!parentElement || !scopedState || typeof scopedState.val === 'undefined') {
-    console.error('Invalid arguments for bindChildren: parentElement and scopedState (with .val) are required.');
+  if (
+    !parentElement ||
+    !scopedState ||
+    typeof scopedState.val === "undefined"
+  ) {
+    console.error(
+      "Invalid arguments for bindChildren: parentElement and scopedState (with .val) are required.",
+    );
     return;
   }
   van.derive(() => {
@@ -92,8 +112,14 @@ export function bindChildren(parentElement, scopedState) {
  * @returns {ChildNode | ChildNode[] | undefined} The DOM element(s) rendered by VanJS, or undefined if arguments are invalid.
  */
 export function bindChildrenWithVanAdd(parentElement, scopedState) {
-   if (!parentElement || !scopedState || typeof scopedState.val === 'undefined') {
-    console.error('Invalid arguments for bindChildrenWithVanAdd: parentElement and scopedState (with .val) are required.');
+  if (
+    !parentElement ||
+    !scopedState ||
+    typeof scopedState.val === "undefined"
+  ) {
+    console.error(
+      "Invalid arguments for bindChildrenWithVanAdd: parentElement and scopedState (with .val) are required.",
+    );
     return undefined;
   }
   return van.add(parentElement, () => scopedState.val);

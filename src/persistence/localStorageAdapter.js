@@ -9,19 +9,19 @@ const localStorageAdapter = {
    * @returns {any | null} The retrieved item (parsed if JSON), or null if not found or error.
    */
   getItem: (key) => {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      console.warn('localStorage is not available. Cannot getItem.')
-      return null
+    if (typeof window === "undefined" || !window.localStorage) {
+      console.warn("localStorage is not available. Cannot getItem.");
+      return null;
     }
     try {
-      const serializedState = window.localStorage.getItem(key)
+      const serializedState = window.localStorage.getItem(key);
       if (serializedState === null) {
-        return undefined // Or null, depending on desired API for "not found"
+        return undefined; // Or null, depending on desired API for "not found"
       }
-      return JSON.parse(serializedState)
+      return JSON.parse(serializedState);
     } catch (error) {
-      console.error('Error getting item from localStorage:', error)
-      return null // Or undefined
+      console.error("Error getting item from localStorage:", error);
+      return null; // Or undefined
     }
   },
 
@@ -32,15 +32,15 @@ const localStorageAdapter = {
    * @returns {void}
    */
   setItem: (key, value) => {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      console.warn('localStorage is not available. Cannot setItem.')
-      return
+    if (typeof window === "undefined" || !window.localStorage) {
+      console.warn("localStorage is not available. Cannot setItem.");
+      return;
     }
     try {
-      const serializedState = JSON.stringify(value)
-      window.localStorage.setItem(key, serializedState)
+      const serializedState = JSON.stringify(value);
+      window.localStorage.setItem(key, serializedState);
     } catch (error) {
-      console.error('Error setting item in localStorage:', error)
+      console.error("Error setting item in localStorage:", error);
     }
   },
 
@@ -50,16 +50,16 @@ const localStorageAdapter = {
    * @returns {void}
    */
   removeItem: (key) => {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      console.warn('localStorage is not available. Cannot removeItem.')
-      return
+    if (typeof window === "undefined" || !window.localStorage) {
+      console.warn("localStorage is not available. Cannot removeItem.");
+      return;
     }
     try {
-      window.localStorage.removeItem(key)
+      window.localStorage.removeItem(key);
     } catch (error) {
-      console.error('Error removing item from localStorage:', error)
+      console.error("Error removing item from localStorage:", error);
     }
-  }
-}
+  },
+};
 
-export default localStorageAdapter
+export default localStorageAdapter;
