@@ -104,7 +104,7 @@ depstate/
 │   ├── scopedState.test.js
 │   └── middleware/
 │       └── thunk.test.js
-├──.eslintrc.json            # ESLint configuration (example)
+├── .eslintrc.json           # ESLint configuration (example)
 ├──.gitignore                # Git ignore file
 ├── LICENSE                   # License file (e.g., MIT)
 ├── package.json              # Project metadata and dependencies
