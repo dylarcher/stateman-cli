@@ -1,5 +1,7 @@
+# .github/workflows/codeql.yml
+
 name: Verify
-on: 
+on:
   push:
     - dev
     - main
@@ -31,6 +33,9 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18.x'
+    - name: Project build process
+      if: matrix.language == 'javascript'
+      run: npm ci && npm run build
     - name: CodeQL environment setup
       uses: github/codeql-action/init@v3
       with:
