@@ -33,13 +33,9 @@ export function createGlobalStore({
     dependencies = {},
     devTools = true
 }) {
-    // Create a DI-aware thunk middleware
-    const thunkMiddleware = ({ dispatch, getState }) => next => action => {
-        if (typeof action === 'function') {
-            return action(dispatch, getState, dependencies)
-        }
-        return next(action)
-    }
+    // Import and use the shared DI-aware thunk middleware
+    import { createThunkMiddleware } from './middleware/thunk.js';
+    const thunkMiddleware = createThunkMiddleware(dependencies);
 
     // Prepend our thunk middleware to any user-provided middleware
     const allMiddleware = [thunkMiddleware, ...middleware]
