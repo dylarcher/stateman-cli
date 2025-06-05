@@ -1,6 +1,5 @@
 // Global Store
 export { createGlobalStore } from './globalStore.js'
-export { createGlobalStore } from './globalStore.js'
 
 // Scoped State
 export { createScopedState, deriveScopedState } from './scopedState.js'
