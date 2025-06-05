@@ -1,0 +1,22 @@
+name: ESLint
+
+on:
+  pull_request:
+    branches: 
+      - dev
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x' # You can specify other versions
+    - name: Project dependency setup
+      run: npm install
+    - name: Lint project source code
+      run: npx eslint src/**/*.js

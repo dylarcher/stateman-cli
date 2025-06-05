@@ -1,0 +1,36 @@
+name: Prettier
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # For pushing changes back
+        token: ${{ secrets.GITHUB_TOKEN }}
+        ref: ${{ github.head_ref }} # Checkout the PR branch if it's a PR, otherwise the commit branch
+
+    - name: NodeJS environment setup
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+
+    - name: Project prerequisites setup
+      run: npm install
+
+    - name: Format project source code
+      run: npm run format # This script will be added to package.json
+
+    - name: Check-in change(s) to project
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add -A
+        git diff --staged --quiet || (git commit -m "Automated formatting" && git push)
