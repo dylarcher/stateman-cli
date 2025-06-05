@@ -1,9 +1,11 @@
 version: 2
-
 updates:
   - package-ecosystem: "npm"
     directory: "/"
-
     schedule:
       interval: "daily"
-      cronjob: "0 0 * * 0" # Runs daily at midnight UTC
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
