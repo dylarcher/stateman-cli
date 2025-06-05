@@ -1,5 +1,11 @@
 name: Verify
-on: push
+on: 
+  push:
+    - dev
+    - main
+    - release
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
 jobs:
   analyze:
     name: Check (${{ matrix.language }})
