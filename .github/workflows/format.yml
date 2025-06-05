@@ -6,19 +6,21 @@ on:
       - dev
       - main
 
+  schedule:
+    - cron: '0 2 * * *' # Runs daily at 2 AM UTC
+
 jobs:
   format:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        # For pushing changes back
         token: ${{ secrets.GITHUB_TOKEN }}
-        ref: ${{ github.head_ref }} # Checkout the PR branch if it's a PR, otherwise the commit branch
+        ref: ${{ github.head_ref }}
 
     - name: NodeJS environment setup
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18.x'
 
@@ -26,7 +28,7 @@ jobs:
       run: npm install
 
     - name: Format project source code
-      run: npm run format # This script will be added to package.json
+      run: npm run format
 
     - name: Check-in change(s) to project
       run: |
