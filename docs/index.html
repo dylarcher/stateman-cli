@@ -1698,9 +1698,6 @@ graph TD
                 })
                 updateChartStyles()
                 renderMermaidDiagrams()
-                if (window.Prism) {
-                    Prism.highlightAll();
-                }
             }
 
             function toggleTheme() {
@@ -1708,6 +1705,9 @@ graph TD
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
                 localStorage.setItem(THEME_STORAGE_KEY, newTheme)
                 applyTheme(newTheme)
+                if (window.Prism) {
+                    Prism.highlightAll()
+                }
             }
 
             themeToggleButton.addEventListener('click', toggleTheme)
