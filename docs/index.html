@@ -1663,7 +1663,7 @@ graph TD
                 }
                 chartBGColors = apiMethods.map(m => {
                     const inspiration = m.inspiration
-                    const colorVar = inspirationToColorMap[inspiration] || 'var(--theme-text-secondary)'
+                    const colorVar = inspirationToColorMap[inspiration] || '--theme-text-secondary'
                     let colorValue = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim()
                     if (colorValue.includes('oklch') && !colorValue.includes(' / 0.7')) {
                         if (colorValue.includes(' / 1')) {
