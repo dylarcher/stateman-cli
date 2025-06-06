@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>stateman-cli - Architectural Deep Dive</title>
+    <link rel="icon" href="favicon/favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
@@ -32,128 +33,128 @@
     <style>
         :root {
             /* Light Mode Colors (OKLCH with HEX fallbacks) */
-            --theme-bg: oklch(0.98 0.005 240 / 1);
+            --theme-bg: oklch(0.98 0.005 240 / 1, #f7f7f8);
             /* Fallback: #f7f7f8 */
-            --theme-text-primary: oklch(0.20 0.015 240 / 1);
+            --theme-text-primary: oklch(0.20 0.015 240 / 1, #2a2c2e);
             /* Fallback: #2a2c2e */
-            --theme-text-secondary: oklch(0.45 0.015 240 / 1);
+            --theme-text-secondary: oklch(0.45 0.015 240 / 1, #6c757d);
             /* Fallback: #6c757d */
-            --theme-surface: oklch(1 0 0 / 1);
+            --theme-surface: oklch(1 0 0 / 1, #ffffff);
             /* Fallback: #ffffff */
-            --theme-border: oklch(0.90 0.005 240 / 1);
+            --theme-border: oklch(0.90 0.005 240 / 1, #e0e0e0);
             /* Fallback: #e0e0e0 */
-            --theme-accent-primary: oklch(0.55 0.23 255 / 1);
+            --theme-accent-primary: oklch(0.55 0.23 255 / 1, #0d6efd);
             /* Fallback: #0d6efd */
-            --theme-accent-primary-hover: oklch(0.50 0.24 255 / 1);
+            --theme-accent-primary-hover: oklch(0.50 0.24 255 / 1, #0b5ed7);
             /* Fallback: #0b5ed7 */
-            --theme-accent-secondary: oklch(0.60 0.21 285 / 1);
+            --theme-accent-secondary: oklch(0.60 0.21 285 / 1, #6f42c1);
             /* Fallback: #6f42c1 */
-            --theme-accent-secondary-hover: oklch(0.55 0.22 285 / 1);
+            --theme-accent-secondary-hover: oklch(0.55 0.22 285 / 1, #59359a);
             /* Fallback: #59359a */
-            --theme-text-on-accent: oklch(1 0 0 / 1);
+            --theme-text-on-accent: oklch(1 0 0 / 1, #ffffff);
             /* Fallback: #ffffff */
-            --theme-gemini-output-bg: oklch(0.95 0.05 260 / 1);
+            --theme-gemini-output-bg: oklch(0.95 0.05 260 / 1, #eef2ff);
             /* Fallback: #eef2ff */
-            --theme-gemini-output-border: oklch(0.65 0.15 260 / 1);
+            --theme-gemini-output-border: oklch(0.65 0.15 260 / 1, #6366f1);
             /* Fallback: #6366f1 */
-            --theme-success: oklch(0.65 0.18 150 / 1);
+            --theme-success: oklch(0.65 0.18 150 / 1, #198754);
             /* Fallback: #198754 */
-            --theme-danger: oklch(0.60 0.25 25 / 1);
+            --theme-danger: oklch(0.60 0.25 25 / 1, #dc3545);
             /* Fallback: #dc3545 */
-            --theme-warning: oklch(0.80 0.20 80 / 1);
+            --theme-warning: oklch(0.80 0.20 80 / 1, #ffc107);
             /* Fallback: #ffc107 */
-            --theme-info: oklch(0.75 0.15 220 / 1);
+            --theme-info: oklch(0.75 0.15 220 / 1, #0dcaf0);
             /* Fallback: #0dcaf0 */
-            --theme-code-bg: oklch(0.94 0.01 240 / 1);
+            --theme-code-bg: oklch(0.94 0.01 240 / 1, #f0f0f0);
             /* Fallback: #f0f0f0 */
-            --theme-code-text: oklch(0.35 0.18 300 / 1);
+            --theme-code-text: oklch(0.35 0.18 300 / 1, #502477);
             /* Fallback: #502477 */
 
 
-            --chart-grid-color: oklch(0.2 0.01 240 / 0.1);
+            --chart-grid-color: oklch(0.2 0.01 240 / 0.1, rgba(0,0,0,0.1));
             /* Fallback: rgba(0,0,0,0.1) */
-            --chart-tick-color: oklch(0.45 0.015 240 / 1);
+            --chart-tick-color: oklch(0.45 0.015 240 / 1, #6c757d);
             /* Fallback: #6c757d */
-            --chart-tooltip-bg: oklch(0.2 0.015 240 / 0.9);
+            --chart-tooltip-bg: oklch(0.2 0.015 240 / 0.9, rgba(0,0,0,0.9));
             /* Fallback: rgba(0,0,0,0.9) */
-            --chart-tooltip-text: oklch(1 0 0 / 1);
+            --chart-tooltip-text: oklch(1 0 0 / 1, #ffffff);
             /* Fallback: #ffffff */
-            --chart-color-1: oklch(0.55 0.23 255 / 1);
+            --chart-color-1: oklch(0.55 0.23 255 / 1, #0d6efd);
             /* Redux - Full opacity for legend */
             /* Fallback: #0d6efd */
-            --chart-color-2: oklch(0.65 0.18 150 / 1);
+            --chart-color-2: oklch(0.65 0.18 150 / 1, #198754);
             /* VanJS */
             /* Fallback: #198754 */
-            --chart-color-3: oklch(0.80 0.20 80 / 1);
+            --chart-color-3: oklch(0.80 0.20 80 / 1, #ffc107);
             /* Immutable.js */
             /* Fallback: #ffc107 */
-            --chart-color-4: oklch(0.60 0.21 285 / 1);
+            --chart-color-4: oklch(0.60 0.21 285 / 1, #6f42c1);
             /* React-Redux */
             /* Fallback: #6f42c1 */
-            --chart-color-default-bar: oklch(0.55 0.23 255 / 0.7);
+            --chart-color-default-bar: oklch(0.55 0.23 255 / 0.7, rgba(13, 110, 253, 0.7));
             /* Redux bar */
         }
 
         [data-theme="dark"] {
-            --theme-bg: oklch(0.15 0.01 240 / 1);
+            --theme-bg: oklch(0.15 0.01 240 / 1, #1f2022);
             /* Fallback: #1f2022 */
-            --theme-text-primary: oklch(0.90 0.005 240 / 1);
+            --theme-text-primary: oklch(0.90 0.005 240 / 1, #e0e1e2);
             /* Fallback: #e0e1e2 */
-            --theme-text-secondary: oklch(0.65 0.01 240 / 1);
+            --theme-text-secondary: oklch(0.65 0.01 240 / 1, #adb5bd);
             /* Fallback: #adb5bd */
-            --theme-surface: oklch(0.20 0.015 240 / 1);
+            --theme-surface: oklch(0.20 0.015 240 / 1, #2a2c2e);
             /* Fallback: #2a2c2e */
-            --theme-border: oklch(0.35 0.015 240 / 1);
+            --theme-border: oklch(0.35 0.015 240 / 1, #495057);
             /* Fallback: #495057 */
-            --theme-accent-primary: oklch(0.65 0.25 255 / 1);
+            --theme-accent-primary: oklch(0.65 0.25 255 / 1, #589bf0);
             /* Fallback: #589bf0 */
-            --theme-accent-primary-hover: oklch(0.70 0.26 255 / 1);
+            --theme-accent-primary-hover: oklch(0.70 0.26 255 / 1, #7aaef3);
             /* Fallback: #7aaef3 */
-            --theme-accent-secondary: oklch(0.70 0.23 285 / 1);
+            --theme-accent-secondary: oklch(0.70 0.23 285 / 1, #9370db);
             /* Fallback: #9370db */
-            --theme-accent-secondary-hover: oklch(0.75 0.24 285 / 1);
+            --theme-accent-secondary-hover: oklch(0.75 0.24 285 / 1, #a480e2);
             /* Fallback: #a480e2 */
-            --theme-text-on-accent: oklch(0.15 0.01 240 / 1);
+            --theme-text-on-accent: oklch(0.15 0.01 240 / 1, #1f2022);
             /* Fallback: #1f2022 */
-            --theme-gemini-output-bg: oklch(0.25 0.05 260 / 1);
+            --theme-gemini-output-bg: oklch(0.25 0.05 260 / 1, #30336b);
             /* Fallback: #30336b */
-            --theme-gemini-output-border: oklch(0.70 0.15 260 / 1);
+            --theme-gemini-output-border: oklch(0.70 0.15 260 / 1, #8c9eff);
             /* Fallback: #8c9eff */
-            --theme-success: oklch(0.70 0.20 150 / 1);
+            --theme-success: oklch(0.70 0.20 150 / 1, #20c997);
             /* Fallback: #20c997 */
-            --theme-danger: oklch(0.65 0.27 25 / 1);
+            --theme-danger: oklch(0.65 0.27 25 / 1, #ff6b81);
             /* Fallback: #ff6b81 */
-            --theme-warning: oklch(0.85 0.22 80 / 1);
+            --theme-warning: oklch(0.85 0.22 80 / 1, #ffca2c);
             /* Fallback: #ffca2c */
-            --theme-info: oklch(0.80 0.17 220 / 1);
+            --theme-info: oklch(0.80 0.17 220 / 1, #3dd5f3);
             /* Fallback: #3dd5f3 */
-            --theme-code-bg: oklch(0.25 0.015 240 / 1);
+            --theme-code-bg: oklch(0.25 0.015 240 / 1, #333538);
             /* Fallback: #333538 */
-            --theme-code-text: oklch(0.75 0.15 280 / 1);
+            --theme-code-text: oklch(0.75 0.15 280 / 1, #b5a1e0);
             /* Fallback: #b5a1e0 */
 
 
-            --chart-grid-color: oklch(0.9 0.005 240 / 0.1);
+            --chart-grid-color: oklch(0.9 0.005 240 / 0.1, rgba(255,255,255,0.1));
             /* Fallback: rgba(255,255,255,0.1) */
-            --chart-tick-color: oklch(0.65 0.01 240 / 1);
+            --chart-tick-color: oklch(0.65 0.01 240 / 1, #adb5bd);
             /* Fallback: #adb5bd */
-            --chart-tooltip-bg: oklch(0.9 0.005 240 / 0.9);
+            --chart-tooltip-bg: oklch(0.9 0.005 240 / 0.9, rgba(255,255,255,0.9));
             /* Fallback: rgba(255,255,255,0.9) */
-            --chart-tooltip-text: oklch(0.15 0.01 240 / 1);
+            --chart-tooltip-text: oklch(0.15 0.01 240 / 1, #1f2022);
             /* Fallback: #1f2022 */
-            --chart-color-1: oklch(0.65 0.25 255 / 1);
+            --chart-color-1: oklch(0.65 0.25 255 / 1, #589bf0);
             /* Redux */
             /* Fallback: #589bf0 */
-            --chart-color-2: oklch(0.70 0.20 150 / 1);
+            --chart-color-2: oklch(0.70 0.20 150 / 1, #20c997);
             /* VanJS */
             /* Fallback: #20c997 */
-            --chart-color-3: oklch(0.85 0.22 80 / 1);
+            --chart-color-3: oklch(0.85 0.22 80 / 1, #ffca2c);
             /* Immutable.js */
             /* Fallback: #ffca2c */
-            --chart-color-4: oklch(0.75 0.24 285 / 1);
+            --chart-color-4: oklch(0.75 0.24 285 / 1, #a480e2);
             /* React-Redux */
             /* Fallback: #a480e2 */
-            --chart-color-default-bar: oklch(0.65 0.25 255 / 0.7);
+            --chart-color-default-bar: oklch(0.65 0.25 255 / 0.7, rgba(88, 155, 240, 0.7));
             /* Redux bar */
         }
 
@@ -831,6 +832,14 @@
             width: max-content;
             margin-left: auto;
         }
+
+        .github-icon-link {
+            color: var(--theme-text-secondary);
+            transition: color 0.2s ease-in-out;
+        }
+        .github-icon-link:hover {
+            color: var(--theme-accent-primary);
+        }
     </style>
 </head>
 
@@ -862,23 +871,13 @@
                         class="nav-link px-3 py-2 rounded-lg text-sm font-medium">How To <kbd class="shortcut-key"
                             aria-hidden="true">H</kbd></a>
                     <a href="#roadmap" id="roadmap-link"
-                        class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Roadmap <kbd class="shortcut-key"
-                            aria-hidden="true">R</kbd></a>
-                    <a href="https://github.com/dylarcher/stateman-cli" target="_blank" rel="noopener noreferrer"
-                        class="px-3 py-2 rounded-lg text-2xl font-medium"
-                        aria-label="GitHub Repository (opens in new tab)"><svg height="16" fill="none" width="16"
+                        class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Roadmap <kbd class="shortcut-key" aria-hidden="true">R</kbd></a>
+                    <a href="https://github.com/darcher/stateman-cli" target="_blank" rel="noopener noreferrer"
+                        class="github-icon-link px-3 py-2 rounded-lg text-2xl font-medium"
+                        aria-label="GitHub Repository (opens in new tab)"><svg height="16" fill="currentColor" width="16"
                             xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0"
                             viewBox="0 0 97.6 96" style="enable-background:new 0 0 97.6 96;" xml:space="preserve"
                             role="img" aria-hidden="true">
-                            <style type="text/css">
-                                path {
-                                    fill: var(--theme-text-secondary);
-                                }
-
-                                a:hover path {
-                                    fill: var(--theme-accent-primary);
-                                }
-                            </style>
                             <path d="
                                 M48.9,0C21.8,0,0,22,0,49.2C0,71,14,89.4,33.4,95.9c2.4,0.5,3.3-1.1,3.3-2.4c0-1.1-0.1-5.1-0.1-9.1
                                 c-13.6,2.9-16.4-5.9-16.4-5.9c-2.2-5.7-5.4-7.2-5.4-7.2c-4.4-3,0.3-3,0.3-3c4.9,0.3,7.5,5.1,7.5,5.1c4.4,7.5,11.4,5.4,14.2,4.1
@@ -904,27 +903,17 @@
                         aria-label="Toggle theme (Alt + T)">
                         <span class="dark-mode-icon hidden" aria-hidden="true">🌙</span>
                         <span class="light-mode-icon hidden" aria-hidden="true">☀️</span>
-                        <kbd class="shortcut-key sr-only" aria-hidden="true">T</kbd>
                     </button>
                 </div>
                 <div class="md:hidden flex items-center">
                     <button id="mobile-keymap-button" class="keymap-button mr-1"
                         aria-label="Open Keyboard Shortcuts (Alt + M)" title="Keyboard Shortcuts (Alt + M)">⌨️</button>
-                    <a href="https://github.com/dylarcher/stateman-cli" target="_blank" rel="noopener noreferrer"
-                        class="p-1 text-2xl rounded-lg" aria-label="GitHub Repository (opens in new tab)"><svg
-                            height="16" fill="none" width="16" xmlns="http://www.w3.org/2000/svg"
+                    <a href="https://github.com/darcher/stateman-cli" target="_blank" rel="noopener noreferrer"
+                        class="github-icon-link p-1 text-2xl rounded-lg" aria-label="GitHub Repository (opens in new tab)"><svg height="16"
+                            fill="currentColor" width="16" xmlns="http://www.w3.org/2000/svg"
                             xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" viewBox="0 0 97.6 96"
                             style="enable-background:new 0 0 97.6 96;" xml:space="preserve" role="img"
                             aria-hidden="true">
-                            <style type="text/css">
-                                path {
-                                    fill: var(--theme-text-secondary);
-                                }
-
-                                a:hover path {
-                                    fill: var(--theme-accent-primary);
-                                }
-                            </style>
                             <path d="
                                 M48.9,0C21.8,0,0,22,0,49.2C0,71,14,89.4,33.4,95.9c2.4,0.5,3.3-1.1,3.3-2.4c0-1.1-0.1-5.1-0.1-9.1
                                 c-13.6,2.9-16.4-5.9-16.4-5.9c-2.2-5.7-5.4-7.2-5.4-7.2c-4.4-3,0.3-3,0.3-3c4.9,0.3,7.5,5.1,7.5,5.1c4.4,7.5,11.4,5.4,14.2,4.1
@@ -1050,8 +1039,6 @@ console.log(globalStore.getState()); // Output: { count: 1 }
                         <div class="mermaid-flow-container mt-8">
                             <pre class="mermaid" aria-label="Global Store Usage Flow Diagram">
 graph TD
-    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px; /* Light Mode Default */
-    %% Dark Mode: Handled via CSS variables in the global stylesheet.
     A["User/System Event"] --> B("<code>globalStore.dispatch({ type: 'INCREMENT' })</code>"):::codeNodeStyle;
     B --> C["Reducer (counterReducer)"];
     C -- "Action: 'INCREMENT'" --> D["New State: { count: 1 }"]:::codeNodeStyle;
@@ -1095,11 +1082,6 @@ console.log(nameState.val); // Output: Developer
 graph TD
     classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; /* Light Mode Default */
     %% Dark Mode: classDef codeNodeStyle fill:#333538,stroke:#495057,color:#b5a1e0,rx:8px,ry:8px;
-    A["Initial: nameState ('Guest')"] --> B("<code>nameState.val = 'Developer'</code>"):::codeNodeStyle;
-    B --> C["Reactive Update"];
-    C --> D["UI Element Shows 'Developer'"];
-    D --> E("<code>console.log(nameState.val)</code>"):::codeNodeStyle;
-    E --> F["Logs: 'Developer'"]:::codeNodeStyle;
                             </pre>
                         </div>
                     </div>
@@ -1135,10 +1117,6 @@ console.log(globalStore.getState()); // Output: { count: (previous_count + 1) }
 graph LR
 classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; /* Light Mode Default */
 %% Dark Mode: classDef codeNodeStyle fill:#333538,stroke:#495057,color:#b5a1e0,rx:8px,ry:8px;
-A["Scoped Component"] --> B("<code>componentState.getGlobal(state => state.count)</code>"):::codeNodeStyle;
-B --> C["Global Store"]:::codeNodeStyle;
-C -- "Returns count" --> D["<code>globalCount</code> variable"]:::codeNodeStyle;
-D --> E["Usage in Scoped Component"];
                             </pre>
                         </div>
                         <h4 class="text-xl font-semibold text-[var(--theme-text-primary)] mt-8 mb-2 text-center">Dispatching to Global Store</h4>
@@ -1698,17 +1676,30 @@ graph TD
                     }
                     return colorValue
                 })
+
                 document.querySelectorAll('#api-chart-legend .legend-item').forEach(legendItem => {
+                    const inspiration = legendItem.dataset.inspiration
+                    const colorVar = inspirationToColorMap[inspiration] || 'var(--theme-text-secondary)'
+                    // Fetch the (potentially new) full opacity color after theme change
+                    const colorVal = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim()
+                    const colorBox = legendItem.querySelector('.legend-color-box')
+                    if (colorBox) {
+                        colorBox.style.backgroundColor = colorVal
+                    }
+                })
+
+                updateChartStyles() // This will use the new chartBGColors
+                renderMermaidDiagrams() // This will use new theme variables
+            }
             function toggleTheme() {
                 const currentTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
                 localStorage.setItem(THEME_STORAGE_KEY, newTheme)
                 applyTheme(newTheme)
                 if (window.Prism) {
-                    Prism.highlightAll()
+                    Prism.highlightAll() // Re-highlight after theme change
                 }
             }
-
             themeToggleButton.addEventListener('click', toggleTheme)
             mobileThemeToggleButton.addEventListener('click', toggleTheme)
 
@@ -1722,8 +1713,6 @@ graph TD
                     btn.classList.toggle('active', btn.dataset.size === size)
                     btn.setAttribute('aria-pressed', btn.dataset.size === size)
                 })
-                updateChartStyles()
-                renderMermaidDiagrams()
             }
 
             function setFontSizePreference(size) {
@@ -1739,7 +1728,7 @@ graph TD
 
             const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY)
             applyFontSize(savedFontSize || 'md')
-            applyTheme(savedTheme || (prefersDark ? 'dark' : 'light')) // Initial theme apply, also runs mermaid
+            applyTheme(savedTheme || (prefersDark ? 'dark' : 'light')) // Initial theme apply, also runs renderMermaidDiagrams and updateChartStyles
 
             // Initial highlight after first theme application and DOM is ready
             if (window.Prism) {
@@ -1914,8 +1903,7 @@ graph TD
 
             uniqueInspirations.forEach((inspiration, index) => {
                 const colorVar = inspirationToColorMap[inspiration] || '--theme-text-secondary'
-                const colorVal = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim().replace('0.7', '1')
-
+                const colorVal = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim()
                 const legendItem = document.createElement('div')
                 legendItem.className = 'legend-item'
                 legendItem.setAttribute('data-inspiration', inspiration)
@@ -2003,9 +1991,6 @@ graph TD
                 }
             }
 
-            // Initialize chartBGColors after theme is set for the first time
-            // applyTheme(savedTheme || (prefersDark ? 'dark' : 'light')); // This will call updateChartStyles which uses chartBGColors
-
             const chartData = {
                 labels: apiMethods.map(m => m.name),
                 datasets: [{
@@ -2016,7 +2001,8 @@ graph TD
                     borderWidth: 0 // Remove border from bars
                 }]
             }
-            window.apiChartInstance = new Chart(document.getElementById('apiChart').getContext('2d'), {
+            const apiChartCanvas = document.getElementById('apiChart')
+            if (apiChartCanvas) window.apiChartInstance = new Chart(apiChartCanvas.getContext('2d'), {
                 type: 'bar', data: chartData, options: getChartOptions()
             })
 
@@ -2209,15 +2195,15 @@ graph TD
                 button.addEventListener('click', (e) => {
                     const triggerButton = e.currentTarget
                     const outputElement = document.getElementById(triggerButton.dataset.outputId)
-                    let prompt = ""
+                    let prompt = "";
                     if (triggerButton.dataset.outputId === "global-usecases-output") {
-                        prompt = "For a Global Store in a JavaScript state management library (inspired by Redux and using Immutable.js), suggest 3 distinct practical use cases or scenarios where this type of store would be most beneficial. For each use case, briefly explain why the global store is a good fit. Present as a bulleted list."
+                        prompt = "For a Global Store in a JavaScript state management library (inspired by Redux and using Immutable.js), suggest 3 distinct practical use cases or scenarios where this type of store would be most beneficial. For each use case, briefly explain why the global store is a good fit. Present as a bulleted list.";
                     } else {
-                        prompt = "For a Scoped State in a JavaScript state management library (inspired by VanJS, focusing on lightweight, reactive, UI-bound state), suggest 3 distinct practical use cases or scenarios where this type of state would be most beneficial. For each use case, briefly explain why scoped state is a good fit. Present as a bulleted list."
+                        prompt = "For a Scoped State in a JavaScript state management library (inspired by VanJS, focusing on lightweight, reactive, UI-bound state), suggest 3 distinct practical use cases or scenarios where this type of state would be most beneficial. For each use case, briefly explain why scoped state is a good fit. Present as a bulleted list.";
                     }
                     callGemini(prompt, outputElement, triggerButton)
                 })
-            })
+            });
 
             // Keyboard Shortcuts & Copy Anchor
             document.querySelectorAll('.copy-anchor-link').forEach(link => {
@@ -2225,24 +2211,29 @@ graph TD
                     e.preventDefault()
                     const anchorId = e.currentTarget.dataset.anchor
                     const url = `${window.location.origin}${window.location.pathname}#${anchorId}`
-                    const feedbackSpan = e.currentTarget.nextElementSibling
+                    const feedbackSpan = e.currentTarget.nextElementSibling;
 
                     try {
-                        const tempTextArea = document.createElement('textarea')
-                        tempTextArea.value = url
-                        document.body.appendChild(tempTextArea)
-                        tempTextArea.select()
-                        document.execCommand('copy')
-                        document.body.removeChild(tempTextArea)
-
-                        if (feedbackSpan) {
-                            feedbackSpan.textContent = 'Copied!'
-                            feedbackSpan.classList.add('visible')
-                            setTimeout(() => {
-                                feedbackSpan.classList.remove('visible')
-                                feedbackSpan.textContent = ''
-                            }, 2000)
-                        }
+                        navigator.clipboard.writeText(url).then(() => {
+                            if (feedbackSpan) {
+                                feedbackSpan.textContent = 'Copied!'
+                                feedbackSpan.classList.add('visible')
+                                setTimeout(() => {
+                                    feedbackSpan.classList.remove('visible')
+                                    feedbackSpan.textContent = ''
+                                }, 2000)
+                            }
+                        }).catch(err => {
+                            console.error('Failed to copy anchor link: ', err)
+                            if (feedbackSpan) {
+                                feedbackSpan.textContent = 'Copy failed!'
+                                feedbackSpan.classList.add('visible')
+                                setTimeout(() => {
+                                    feedbackSpan.classList.remove('visible')
+                                    feedbackSpan.textContent = ''
+                                }, 2000)
+                            }
+                        })
                     } catch (err) {
                         console.error('Failed to copy anchor link: ', err)
                         if (feedbackSpan) {
@@ -2255,69 +2246,64 @@ graph TD
                         }
                     }
                 })
-            })
+            });
 
             document.addEventListener('keydown', (event) => {
                 if (event.altKey) {
                     let targetElement = null
-                    let sectionToFocus = null
+                    let sectionToFocus = null;
 
                     switch (event.key.toLowerCase()) {
                         case 'o':
                             targetElement = document.getElementById('overview-link')
                             sectionToFocus = document.getElementById('overview-heading')
-                            break
+                            break;
                         case 'a':
                             targetElement = document.getElementById('architecture-link')
                             sectionToFocus = document.getElementById('architecture-heading')
-                            break
+                            break;
                         case 'd':
                             targetElement = document.getElementById('api-link')
                             sectionToFocus = document.getElementById('api-heading')
-                            break
+                            break;
                         case 'h':
                             targetElement = document.getElementById('how-to-link')
                             sectionToFocus = document.getElementById('how-to-heading')
-                            break
+                            break;
                         case 'r':
                             targetElement = document.getElementById('roadmap-link')
                             sectionToFocus = document.getElementById('roadmap-heading')
-                            break
+                            break;
                         case 'k':
                             targetElement = document.getElementById('nav-api-key-button') || document.getElementById('mobile-nav-api-key-button')
-                            break
+                            break;
                         case 't':
                             targetElement = document.getElementById('theme-toggle') || document.getElementById('mobile-theme-toggle')
-                            break
+                            break;
                         case 'm':
                             targetElement = document.getElementById('keymap-button') || document.getElementById('mobile-keymap-button')
-                            break
+                            break;
                     }
 
                     if (targetElement) {
                         event.preventDefault()
-                        targetElement.click()
+                        targetElement.click();
                         if (sectionToFocus && targetElement.tagName === 'A') {
                             const sectionId = targetElement.getAttribute('href').substring(1)
-                            window.location.hash = sectionId
+                            window.location.hash = sectionId;
                             setTimeout(() => {
                                 const heading = document.getElementById(`${sectionId}-heading`)
                                 if (heading) heading.focus()
-                            }, 100)
+                            }, 100);
                         }
                     }
                 }
-            })
-
-            // Initial render of Mermaid diagrams after theme and font size are set
-            renderMermaidDiagrams()
-
-
+            }) // Initial render of Mermaid diagrams after theme and font size are set
+            renderMermaidDiagrams();
         });
     </script>
     <!-- Prism.js Core and Autoloader Plugin -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 </body>
-
 </html>
