@@ -1050,8 +1050,8 @@ console.log(globalStore.getState()); // Output: { count: 1 }
                         <div class="mermaid-flow-container mt-8">
                             <pre class="mermaid" aria-label="Global Store Usage Flow Diagram">
 graph TD
-    classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; /* Light Mode Default */
-    %% Dark Mode: classDef codeNodeStyle fill:#333538,stroke:#495057,color:#b5a1e0,rx:8px,ry:8px;
+    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px; /* Light Mode Default */
+    %% Dark Mode: Handled via CSS variables in the global stylesheet.
     A["User/System Event"] --> B("<code>globalStore.dispatch({ type: 'INCREMENT' })</code>"):::codeNodeStyle;
     B --> C["Reducer (counterReducer)"];
     C -- "Action: 'INCREMENT'" --> D["New State: { count: 1 }"]:::codeNodeStyle;
