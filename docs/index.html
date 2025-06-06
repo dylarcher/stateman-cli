@@ -855,6 +855,9 @@
                             aria-hidden="true">A</kbd></a>
                     <a href="#api" id="api-link" class="nav-link px-3 py-2 rounded-lg text-sm font-medium">API <kbd
                             class="shortcut-key" aria-hidden="true">D</kbd></a>
+                    <a href="#how-to" id="how-to-link"
+                        class="nav-link px-3 py-2 rounded-lg text-sm font-medium">How To <kbd class="shortcut-key"
+                            aria-hidden="true">H</kbd></a>
                     <a href="#roadmap" id="roadmap-link"
                         class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Roadmap <kbd class="shortcut-key"
                             aria-hidden="true">R</kbd></a>
@@ -989,6 +992,165 @@
                         <p class="mt-2 text-[var(--theme-text-secondary)]">Designed to augment, not replace, native
                             platform capabilities like Web Component state and the DOM event model, providing a seamless
                             developer experience.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-to" role="region" aria-labelledby="how-to-heading" class="py-16 md:py-24 section-bg-primary">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 id="how-to-heading"
+                        class="text-3xl font-extrabold tracking-tight sm:text-4xl text-[var(--theme-text-primary)]"
+                        tabindex="-1">
+                        <a href="#how-to" class="copy-anchor-link" title="Copy link to How To section"
+                            data-anchor="how-to" aria-label="Copy link to How To section">#</a>
+                        How To Use Stateman
+                        <span class="copy-feedback" aria-live="polite"></span>
+                    </h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-[var(--theme-text-secondary)]">
+                        Learn how to integrate and use Stateman's core features in your projects.
+                    </p>
+                </div>
+
+                <div class="mt-12 space-y-16">
+                    <!-- Global Store Section -->
+                    <div id="how-to-global-store" class="scroll-mt-24">
+                        <h3 class="text-2xl font-bold text-[var(--theme-text-primary)] mb-4" tabindex="-1">
+                            <a href="#how-to-global-store" class="copy-anchor-link" title="Copy link to Global Store section"
+                               data-anchor="how-to-global-store" aria-label="Copy link to Global Store section">#</a>
+                            Global Store
+                            <span class="copy-feedback" aria-live="polite"></span>
+                        </h3>
+                        <p class="mb-4 text-lg text-[var(--theme-text-secondary)]">
+                            The global store is the central hub for your application's state. Initialize it with `createGlobalStore()`, define a reducer to manage state transitions, and dispatch actions to update the state.
+                        </p>
+                        <pre><code class="language-javascript block p-4 rounded-lg overflow-x-auto">
+// Initialize the store with a reducer
+const initialState = { count: 0 };
+function counterReducer(state = initialState, action) {
+  switch (action.type) {
+    case 'INCREMENT':
+      return { ...state, count: state.count + 1 };
+    default:
+      return state;
+  }
+}
+const globalStore = createGlobalStore(counterReducer);
+
+// Dispatch an action
+globalStore.dispatch({ type: 'INCREMENT' });
+
+// Get current state
+console.log(globalStore.getState()); // Output: { count: 1 }
+                        </code></pre>
+                        <div class="mermaid-flow-container mt-8">
+                            <pre class="mermaid" aria-label="Global Store Usage Flow Diagram">
+graph TD
+    A["User/System Event"] --> B(<code>globalStore.dispatch({ type: 'INCREMENT' })</code>);
+    B --> C{"Reducer (counterReducer)"};
+    C -- Action: 'INCREMENT' --> D["New State: { count: 1 }"];
+    D --> E(<code>globalStore.getState()</code>);
+    E --> F["Logs: { count: 1 }"];
+    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px;
+    class B,E codeNodeStyle;
+                            </pre>
+                        </div>
+                    </div>
+
+                    <!-- Scoped State Section -->
+                    <div id="how-to-scoped-state" class="scroll-mt-24">
+                        <h3 class="text-2xl font-bold text-[var(--theme-text-primary)] mb-4" tabindex="-1">
+                            <a href="#how-to-scoped-state" class="copy-anchor-link" title="Copy link to Scoped State section"
+                               data-anchor="how-to-scoped-state" aria-label="Copy link to Scoped State section">#</a>
+                            Scoped State
+                            <span class="copy-feedback" aria-live="polite"></span>
+                        </h3>
+                        <p class="mb-4 text-lg text-[var(--theme-text-secondary)]">
+                            Scoped states, created with `createScopedState()`, are designed for managing local, component-level state. They are reactive and can be directly tied to UI elements.
+                            <em class="block mt-2 text-sm">Note: Direct DOM binding details might vary based on the actual library implementation or if used with a framework. The example below is conceptual for VanJS-like reactivity.</em>
+                        </p>
+                        <pre><code class="language-javascript block p-4 rounded-lg overflow-x-auto">
+// Create a scoped state
+const nameState = createScopedState('Guest');
+
+// Bind to an HTML element (conceptual)
+// &lt;p&gt;Welcome, &lt;span id="username"&gt;&lt;/span&gt;&lt;/p&gt;
+// const usernameElement = document.getElementById('username');
+// usernameElement.textContent = nameState.val; // Initial value
+
+// nameState.subscribe(newValue => {
+//   usernameElement.textContent = newValue;
+// });
+
+// Update the state
+nameState.val = 'Developer'; // UI would update to 'Developer'
+console.log(nameState.val); // Output: Developer
+                        </code></pre>
+                        <div class="mermaid-flow-container mt-8">
+                            <pre class="mermaid" aria-label="Scoped State Usage Flow Diagram">
+graph TD
+    A["Initial: nameState ('Guest')"] --> B(<code>nameState.val = 'Developer'</code>);
+    B --> C["Reactive Update"];
+    C --> D["UI Element Shows 'Developer'"];
+    D --> E(<code>console.log(nameState.val)</code>);
+    E --> F["Logs: 'Developer'"];
+    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px;
+    class B,E codeNodeStyle;
+                            </pre>
+                        </div>
+                    </div>
+
+                    <!-- Bridge Section -->
+                    <div id="how-to-bridge" class="scroll-mt-24">
+                        <h3 class="text-2xl font-bold text-[var(--theme-text-primary)] mb-4" tabindex="-1">
+                            <a href="#how-to-bridge" class="copy-anchor-link" title="Copy link to Bridge section"
+                               data-anchor="how-to-bridge" aria-label="Copy link to Bridge section">#</a>
+                            Bridge: Connecting Scoped State to Global Store
+                            <span class="copy-feedback" aria-live="polite"></span>
+                        </h3>
+                        <p class="mb-4 text-lg text-[var(--theme-text-secondary)]">
+                            Scoped components can interact with the global store in a controlled manner. Use `scopedState.getGlobal()` to read data from the global store and `scopedState.dispatchGlobal()` to dispatch actions to it.
+                        </p>
+                        <pre><code class="language-javascript block p-4 rounded-lg overflow-x-auto">
+// Assuming globalStore is already created
+
+// In a component with scoped state
+const componentState = createScopedState({ localData: '...' });
+
+// Reading from global store
+const globalCount = componentState.getGlobal(state => state.count);
+console.log('Global count:', globalCount);
+
+// Dispatching to global store
+componentState.dispatchGlobal({ type: 'INCREMENT' });
+console.log(globalStore.getState()); // Output: { count: (previous_count + 1) }
+                        </code></pre>
+                        <h4 class="text-xl font-semibold text-[var(--theme-text-primary)] mt-8 mb-2 text-center">Reading Global State</h4>
+                        <div class="mermaid-flow-container mt-4">
+                            <pre class="mermaid" aria-label="Bridge - Reading Global State Flow Diagram">
+graph TD
+    A["Scoped Component"] --> B(<code>componentState.getGlobal(state => state.count)</code>);
+    B --> C["Global Store"];
+    C -- Returns count --> D["globalCount variable"];
+    D --> E(<code>console.log('Global count:', globalCount)</code>);
+    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px;
+    class B,E codeNodeStyle;
+                            </pre>
+                        </div>
+                        <h4 class="text-xl font-semibold text-[var(--theme-text-primary)] mt-8 mb-2 text-center">Dispatching to Global Store</h4>
+                        <div class="mermaid-flow-container mt-4">
+                            <pre class="mermaid" aria-label="Bridge - Dispatching to Global Store Flow Diagram">
+graph TD
+    A["Scoped Component"] --> B(<code>componentState.dispatchGlobal({ type: 'INCREMENT' })</code>);
+    B --> C["Global Store Action Queue"];
+    C --> D{"Global Reducer"};
+    D -- Updates state --> E["Global State Updated"];
+    E --> F(<code>globalStore.getState()</code>);
+    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px;
+    class B,F codeNodeStyle;
+                            </pre>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1284,6 +1446,7 @@
                 <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">A</kbd> : Navigate to Architecture
                 </li>
                 <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">D</kbd> : Navigate to API</li>
+                <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">H</kbd> : Navigate to How To</li>
                 <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">R</kbd> : Navigate to Roadmap</li>
                 <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">K</kbd> : Open API Key Settings</li>
                 <li><kbd class="shortcut-key">Alt</kbd> + <kbd class="shortcut-key">T</kbd> : Toggle Light/Dark Theme
@@ -2082,6 +2245,10 @@
                         case 'd':
                             targetElement = document.getElementById('api-link')
                             sectionToFocus = document.getElementById('api-heading')
+                            break
+                        case 'h':
+                            targetElement = document.getElementById('how-to-link')
+                            sectionToFocus = document.getElementById('how-to-heading')
                             break
                         case 'r':
                             targetElement = document.getElementById('roadmap-link')
