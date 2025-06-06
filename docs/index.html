@@ -16,6 +16,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&family=Nunito+Sans:wght@400;600;700&family=Oswald:wght@400;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap"
         rel="stylesheet">
+    <!-- Prism.js CSS Themes -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link id="prism-dark-theme" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" media="none" />
     <!-- Chosen Palette: Dynamically chosen based on light/dark mode. Uses OKLCH with fallbacks. -->
     <!-- Application Structure Plan: A multi-section, non-linear dashboard design. It starts with a high-level overview, then allows users to explore specific areas: a comparative 'Core Architecture' section with tabs, an interactive 'API Deep Dive' with clickable elements and a chart, and a visual 'Roadmap' timeline. This structure was chosen to break down dense technical information into digestible, user-driven sections, promoting exploration and understanding over passive reading. It prioritizes comparing concepts (Global vs. Scoped) and visualizing relationships (the Bridge, API sources) to make the architecture more accessible. Gemini API features added for concept explanation and use case suggestions, with user-provided API key input and management, persisted in localStorage. Light/Dark mode with WCAG AA OKLCH colors and font size toggle implemented. Tooltips are now static and viewport-aware. GitHub link added. ARIA attributes added for enhanced accessibility. Keyboard shortcuts and copy-anchor-link feature added. Code styling, chart bar thickness, and rounded corners updated. Typography updated for headings, body, and code. UI adjustments for buttons, tooltips, legend, chart border, anchor links, fonts, keymap, link text, and interaction indicators. API section now uses CSS masonry. Further UI refinements: H3-H6 font, interactive legend/chart hover, tooltip alignment. Console error fix for scrollspy. Conceptual flows updated to use Mermaid.js. Mermaid parsing error fixed. -->
     <!-- Visualization & Content Choices:
@@ -1471,6 +1474,11 @@ graph TD
             let modalTargetButton = null // For API key modal animation
             let keymapModalTargetButton = null // For keymap modal animation
 
+            const prismDarkThemeLink = document.getElementById('prism-dark-theme');
+            if (window.Prism) {
+                Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+            }
+
             const apiKeyModal = document.getElementById('apiKeyModal')
             const apiKeyModalContent = apiKeyModal.querySelector('.modal-content')
             const geminiApiKeyInput = document.getElementById('geminiApiKeyInput')
@@ -1577,9 +1585,6 @@ graph TD
                         themeVariables: currentThemeVars
                     })
 
-                    const globalFlowEl = document.getElementById('global-store-flow')
-                    const scopedFlowEl = document.getElementById('scoped-state-flow')
-
                     const classDefs = `
                         classDef accentNodeStyle fill:${getHexFallback('--theme-accent-primary')},stroke:${getHexFallback('--theme-accent-primary-hover')},color:${getHexFallback('--theme-text-on-accent')},rx:8px,ry:8px;
                         classDef codeNodeStyle fill:${getHexFallback('--theme-code-bg')},stroke:${getHexFallback('--theme-border')},color:${getHexFallback('--theme-code-text')},rx:8px,ry:8px;
@@ -1607,16 +1612,32 @@ graph TD
                             A --> B --> C --> D --> E
                     `
 
+                    // Process specific diagrams with predefined definitions
+                    const globalFlowEl = document.getElementById('global-store-flow')
                     if (globalFlowEl) {
                         globalFlowEl.removeAttribute('data-processed')
                         globalFlowEl.textContent = globalFlowDef.trim()
                     }
+
+                    const scopedFlowEl = document.getElementById('scoped-state-flow')
                     if (scopedFlowEl) {
                         scopedFlowEl.removeAttribute('data-processed')
                         scopedFlowEl.textContent = scopedFlowDef.trim()
                     }
+
+                    // Process all other mermaid diagrams on the page
+                    const allMermaidElements = document.querySelectorAll('.mermaid:not(#global-store-flow):not(#scoped-state-flow)')
+                    allMermaidElements.forEach(el => {
+                        el.removeAttribute('data-processed')
+                        // Ensure classDefs are available to these diagrams if they use them implicitly
+                        // This might require adjusting individual diagram definitions if they don't include their own classDefs
+                        // For now, we assume they are self-contained or use global mermaid styling
+                    });
+
                     try {
-                        mermaid.run({ nodes: [globalFlowEl, scopedFlowEl].filter(el => el) }) // Run only on existing elements
+                        // Run mermaid on all elements with class 'mermaid'
+                        // This will include the ones defined above and any new ones
+                        mermaid.run({ nodes: document.querySelectorAll('.mermaid') })
                     } catch (e) {
                         console.error("Mermaid rendering error:", e)
                     }
@@ -1647,10 +1668,12 @@ graph TD
                     document.documentElement.setAttribute('data-theme', 'dark')
                     darkIcon.forEach(i => i.classList.remove('hidden'))
                     lightIcon.forEach(i => i.classList.add('hidden'))
+                    if (prismDarkThemeLink) prismDarkThemeLink.media = 'all';
                 } else {
                     document.documentElement.removeAttribute('data-theme')
                     darkIcon.forEach(i => i.classList.add('hidden'))
                     lightIcon.forEach(i => i.classList.remove('hidden'))
+                    if (prismDarkThemeLink) prismDarkThemeLink.media = 'none';
                 }
                 chartBGColors = apiMethods.map(m => {
                     const inspiration = m.inspiration
@@ -1682,6 +1705,9 @@ graph TD
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
                 localStorage.setItem(THEME_STORAGE_KEY, newTheme)
                 applyTheme(newTheme)
+                if (window.Prism) {
+                    Prism.highlightAll()
+                }
             }
 
             themeToggleButton.addEventListener('click', toggleTheme)
@@ -1716,6 +1742,10 @@ graph TD
             applyFontSize(savedFontSize || 'md')
             applyTheme(savedTheme || (prefersDark ? 'dark' : 'light')) // Initial theme apply, also runs mermaid
 
+            // Initial highlight after first theme application and DOM is ready
+            if (window.Prism) {
+                Prism.highlightAll();
+            }
 
             function openApiKeyModal(targetButton, message = null) {
                 modalTargetButton = targetButton
@@ -2286,6 +2316,9 @@ graph TD
 
         });
     </script>
+    <!-- Prism.js Core and Autoloader Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 </body>
 
 </html>
