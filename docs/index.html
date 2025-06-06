@@ -1050,11 +1050,13 @@ console.log(globalStore.getState()); // Output: { count: 1 }
                         <div class="mermaid-flow-container mt-8">
                             <pre class="mermaid" aria-label="Global Store Usage Flow Diagram">
 graph TD
-    A["User/System Event"] --> B(<code>globalStore.dispatch({ type: 'INCREMENT' })</code>):::codeNodeStyle;
-    B --> C{"Reducer (counterReducer)"};
-    C -- Action: 'INCREMENT' --> D["New State: { count: 1 }"];
-    D --> E(<code>globalStore.getState()</code>):::codeNodeStyle;
-    E --> F["Logs: { count: 1 }"];
+    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px; /* Light Mode Default */
+    %% Dark Mode: Handled via CSS variables in the global stylesheet.
+    A["User/System Event"] --> B("<code>globalStore.dispatch({ type: 'INCREMENT' })</code>"):::codeNodeStyle;
+    B --> C["Reducer (counterReducer)"];
+    C -- "Action: 'INCREMENT'" --> D["New State: { count: 1 }"]:::codeNodeStyle;
+    D --> E("<code>globalStore.getState()</code>"):::codeNodeStyle;
+    E --> F["Logs: { count: 1 }"]:::codeNodeStyle;
                             </pre>
                         </div>
                     </div>
@@ -1091,11 +1093,13 @@ console.log(nameState.val); // Output: Developer
                         <div class="mermaid-flow-container mt-8">
                             <pre class="mermaid" aria-label="Scoped State Usage Flow Diagram">
 graph TD
-    A["Initial: nameState ('Guest')"] --> B(<code>nameState.val = 'Developer'</code>):::codeNodeStyle;
+    classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; /* Light Mode Default */
+    %% Dark Mode: classDef codeNodeStyle fill:#333538,stroke:#495057,color:#b5a1e0,rx:8px,ry:8px;
+    A["Initial: nameState ('Guest')"] --> B("<code>nameState.val = 'Developer'</code>"):::codeNodeStyle;
     B --> C["Reactive Update"];
     C --> D["UI Element Shows 'Developer'"];
-    D --> E(<code>console.log(nameState.val)</code>):::codeNodeStyle;
-    E --> F["Logs: 'Developer'"];
+    D --> E("<code>console.log(nameState.val)</code>"):::codeNodeStyle;
+    E --> F["Logs: 'Developer'"]:::codeNodeStyle;
                             </pre>
                         </div>
                     </div>
@@ -1128,24 +1132,28 @@ console.log(globalStore.getState()); // Output: { count: (previous_count + 1) }
                         <h4 class="text-xl font-semibold text-[var(--theme-text-primary)] mt-8 mb-2 text-center">Reading Global State</h4>
                         <div class="mermaid-flow-container mt-4">
                             <pre class="mermaid" aria-label="Bridge - Reading Global State Flow Diagram">
-graph TD
-    A["Scoped Component"] --> B(<code>componentState.getGlobal(state => state.count)</code>):::codeNodeStyle;
-    B --> C["Global Store"];
-    C -- Returns count --> D["globalCount variable"];
-    D --> E(<code>console.log('Global count:', globalCount)</code>):::codeNodeStyle;
+graph LR
+classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; /* Light Mode Default */
+%% Dark Mode: classDef codeNodeStyle fill:#333538,stroke:#495057,color:#b5a1e0,rx:8px,ry:8px;
+A["Scoped Component"] --> B("<code>componentState.getGlobal(state => state.count)</code>"):::codeNodeStyle;
+B --> C["Global Store"]:::codeNodeStyle;
+C -- "Returns count" --> D["<code>globalCount</code> variable"]:::codeNodeStyle;
+D --> E["Usage in Scoped Component"];
                             </pre>
                         </div>
                         <h4 class="text-xl font-semibold text-[var(--theme-text-primary)] mt-8 mb-2 text-center">Dispatching to Global Store</h4>
                         <div class="mermaid-flow-container mt-4">
                             <pre class="mermaid" aria-label="Bridge - Dispatching to Global Store Flow Diagram">
 graph TD
-    A["Scoped Component"] --> B(<code>componentState.dispatchGlobal({ type: 'INCREMENT' })</code>):::codeNodeStyle;
-    B --> C["Global Store Action Queue"];
-    C --> D{"Global Reducer"};
-    D -- Updates state --> E["Global State Updated"];
-    E --> F(<code>globalStore.getState()</code>):::codeNodeStyle;
+    A["Scoped Component"] --> B("<code>componentState.dispatchGlobal({ type: 'INCREMENT' })</code>"):::codeNodeStyle;
+    B --> C["Global Store Action Queue"]:::codeNodeStyle;
+    C --> D["Global Reducer"];
+    D -- "Updates state" --> E["Global State Updated"];
+    E --> F("<code>globalStore.getState()</code>"):::codeNodeStyle;
                             </pre>
                         </div>
+
+
                     </div>
                 </div>
             </div>
@@ -1214,12 +1222,15 @@ graph TD
                                 <div class="mermaid-flow-container">
                                     <pre class="mermaid" aria-label="Global Store Conceptual Flow Diagram"
                                         id="global-store-flow">
-                                    graph TD
-                                        A["UI Event (e.g., Button Click)"]
-                                        B["store.dispatch(...)"]
-                                        C["Reducer: (state, action) => newState"]
-                                        D["New Immutable State Tree"]
-                                        E["UI Updates (via store.subscribe())"]
+                                    graph TD;
+                                    classDef accentNodeStyle fill:#0d6efd,stroke:#0b5ed7,color:#ffffff,rx:8px,ry:8px; %% Light Mode Default
+                                    classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; %% Light Mode Default
+                                    classDef successNodeStyle fill:#198754,stroke:#198754,color:#ffffff,rx:8px,ry:8px; %% Light Mode Default
+                                    A["UI Event (e.g., Button Click)"]:::accentNodeStyle
+                                    B["store.dispatch(...)"]:::codeNodeStyle
+                                    C["Reducer: (state, action) => newState"]:::codeNodeStyle
+                                    D["New Immutable State Tree"]:::successNodeStyle
+                                    E["UI Updates (via store.subscribe())"]:::accentNodeStyle
                                         A --> B --> C --> D --> E
                                     </pre>
                                 </div>
@@ -1261,12 +1272,16 @@ graph TD
                                 <div class="mermaid-flow-container">
                                     <pre class="mermaid" aria-label="Scoped State Conceptual Flow Diagram"
                                         id="scoped-state-flow">
-                                    graph TD
-                                        A["Component Initialized"]
-                                        B["createScopedState('World')"]
-                                        C["DOM Element Bound: <br/> &lt;h1&gt;Hello, {name}&lt;/h1&gt;"]
-                                        D["Update state: <br/> name.val = 'Developer'"]
-                                        E["DOM Automatically Updates"]
+                                    graph TD;
+                                    classDef accentNodeStyle fill:#0d6efd,stroke:#0b5ed7,color:#ffffff,rx:8px,ry:8px; %% Light Mode Default
+                                    classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; %% Light Mode Default
+                                    classDef successNodeStyle fill:#198754,stroke:#198754,color:#ffffff,rx:8px,ry:8px; %% Light Mode Default
+                                    A["Component Initialized"]:::accentNodeStyle
+                                    B["createScopedState('World')"]:::codeNodeStyle
+                                    C["DOM Element Bound: <br />
+                                    <h1>Hello, {name}</h1>"]:::codeNodeStyle
+                                    D["Update state: <br /> name.val = 'Developer'"]:::codeNodeStyle
+                                    E["DOM Automatically Updates"]:::successNodeStyle
                                         A --> B --> C --> D --> E
                                     </pre>
                                 </div>
@@ -1684,15 +1699,6 @@ graph TD
                     return colorValue
                 })
                 document.querySelectorAll('#api-chart-legend .legend-item').forEach(legendItem => {
-                    const inspiration = legendItem.dataset.inspiration
-                    const colorVar = inspirationToColorMap[inspiration] || '--theme-text-secondary'
-                    const colorVal = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim().replace('0.7', '1')
-                    legendItem.querySelector('.legend-color-box').style.backgroundColor = colorVal
-                })
-                updateChartStyles()
-                renderMermaidDiagrams()
-            }
-
             function toggleTheme() {
                 const currentTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
