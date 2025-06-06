@@ -1679,7 +1679,7 @@ graph TD
 
                 document.querySelectorAll('#api-chart-legend .legend-item').forEach(legendItem => {
                     const inspiration = legendItem.dataset.inspiration
-                    const colorVar = inspirationToColorMap[inspiration] || '--theme-text-secondary'
+                    const colorVar = inspirationToColorMap[inspiration] || 'var(--theme-text-secondary)'
                     // Fetch the (potentially new) full opacity color after theme change
                     const colorVal = getComputedStyle(document.documentElement).getPropertyValue(colorVar.substring(4, colorVar.length - 1)).trim()
                     const colorBox = legendItem.querySelector('.legend-color-box')
