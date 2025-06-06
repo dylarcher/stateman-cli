@@ -1080,12 +1080,9 @@ console.log(nameState.val); // Output: Developer
                         <div class="mermaid-flow-container mt-8">
                             <pre class="mermaid" aria-label="Scoped State Usage Flow Diagram">
 graph TD
-    A["Initial: nameState ('Guest')"] --> B("<code>nameState.val = 'Developer'</code>"):::codeNodeStyle;
-    B --> C["Reactive Update"];
-    C --> D["UI Element Shows 'Developer'"];
-    D --> E("<code>console.log(nameState.val)</code>"):::codeNodeStyle;
-    E --> F["Logs: 'Developer'"]:::codeNodeStyle;
-    </pre class="mermaid" aria-label="Scoped State Usage Flow Diagram">
+    classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; /* Light Mode Default */
+    %% Dark Mode: classDef codeNodeStyle fill:#333538,stroke:#495057,color:#b5a1e0,rx:8px,ry:8px;
+                            </pre>
                         </div>
                     </div>
 
@@ -1118,10 +1115,8 @@ console.log(globalStore.getState()); // Output: { count: (previous_count + 1) }
                         <div class="mermaid-flow-container mt-4">
                             <pre class="mermaid" aria-label="Bridge - Reading Global State Flow Diagram">
 graph LR
-A["Scoped Component"] --> B("<code>componentState.getGlobal(state => state.count)</code>"):::codeNodeStyle;
-B --> C["Global Store"]:::codeNodeStyle;
-C -- "Returns count" --> D["<code>globalCount</code> variable"]:::codeNodeStyle;
-D --> E["Usage in Scoped Component"];
+classDef codeNodeStyle fill:#f0f0f0,stroke:#e0e0e0,color:#502477,rx:8px,ry:8px; /* Light Mode Default */
+%% Dark Mode: classDef codeNodeStyle fill:#333538,stroke:#495057,color:#b5a1e0,rx:8px,ry:8px;
                             </pre>
                         </div>
                         <h4 class="text-xl font-semibold text-[var(--theme-text-primary)] mt-8 mb-2 text-center">Dispatching to Global Store</h4>
@@ -1696,7 +1691,6 @@ graph TD
                 updateChartStyles() // This will use the new chartBGColors
                 renderMermaidDiagrams() // This will use new theme variables
             }
-
             function toggleTheme() {
                 const currentTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
