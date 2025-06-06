@@ -1050,13 +1050,11 @@ console.log(globalStore.getState()); // Output: { count: 1 }
                         <div class="mermaid-flow-container mt-8">
                             <pre class="mermaid" aria-label="Global Store Usage Flow Diagram">
 graph TD
-    A["User/System Event"] --> B(<code>globalStore.dispatch({ type: 'INCREMENT' })</code>);
+    A["User/System Event"] --> B(<code>globalStore.dispatch({ type: 'INCREMENT' })</code>):::codeNodeStyle;
     B --> C{"Reducer (counterReducer)"};
     C -- Action: 'INCREMENT' --> D["New State: { count: 1 }"];
-    D --> E(<code>globalStore.getState()</code>);
+    D --> E(<code>globalStore.getState()</code>):::codeNodeStyle;
     E --> F["Logs: { count: 1 }"];
-    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px;
-    class B,E codeNodeStyle;
                             </pre>
                         </div>
                     </div>
@@ -1093,13 +1091,11 @@ console.log(nameState.val); // Output: Developer
                         <div class="mermaid-flow-container mt-8">
                             <pre class="mermaid" aria-label="Scoped State Usage Flow Diagram">
 graph TD
-    A["Initial: nameState ('Guest')"] --> B(<code>nameState.val = 'Developer'</code>);
+    A["Initial: nameState ('Guest')"] --> B(<code>nameState.val = 'Developer'</code>):::codeNodeStyle;
     B --> C["Reactive Update"];
     C --> D["UI Element Shows 'Developer'"];
-    D --> E(<code>console.log(nameState.val)</code>);
+    D --> E(<code>console.log(nameState.val)</code>):::codeNodeStyle;
     E --> F["Logs: 'Developer'"];
-    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px;
-    class B,E codeNodeStyle;
                             </pre>
                         </div>
                     </div>
@@ -1133,25 +1129,21 @@ console.log(globalStore.getState()); // Output: { count: (previous_count + 1) }
                         <div class="mermaid-flow-container mt-4">
                             <pre class="mermaid" aria-label="Bridge - Reading Global State Flow Diagram">
 graph TD
-    A["Scoped Component"] --> B(<code>componentState.getGlobal(state => state.count)</code>);
+    A["Scoped Component"] --> B(<code>componentState.getGlobal(state => state.count)</code>):::codeNodeStyle;
     B --> C["Global Store"];
     C -- Returns count --> D["globalCount variable"];
-    D --> E(<code>console.log('Global count:', globalCount)</code>);
-    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px;
-    class B,E codeNodeStyle;
+    D --> E(<code>console.log('Global count:', globalCount)</code>):::codeNodeStyle;
                             </pre>
                         </div>
                         <h4 class="text-xl font-semibold text-[var(--theme-text-primary)] mt-8 mb-2 text-center">Dispatching to Global Store</h4>
                         <div class="mermaid-flow-container mt-4">
                             <pre class="mermaid" aria-label="Bridge - Dispatching to Global Store Flow Diagram">
 graph TD
-    A["Scoped Component"] --> B(<code>componentState.dispatchGlobal({ type: 'INCREMENT' })</code>);
+    A["Scoped Component"] --> B(<code>componentState.dispatchGlobal({ type: 'INCREMENT' })</code>):::codeNodeStyle;
     B --> C["Global Store Action Queue"];
     C --> D{"Global Reducer"};
     D -- Updates state --> E["Global State Updated"];
-    E --> F(<code>globalStore.getState()</code>);
-    classDef codeNodeStyle fill:var(--theme-code-bg),stroke:var(--theme-border),color:var(--theme-code-text),rx:8px,ry:8px;
-    class B,F codeNodeStyle;
+    E --> F(<code>globalStore.getState()</code>):::codeNodeStyle;
                             </pre>
                         </div>
                     </div>
@@ -1629,9 +1621,10 @@ graph TD
                     const allMermaidElements = document.querySelectorAll('.mermaid:not(#global-store-flow):not(#scoped-state-flow)')
                     allMermaidElements.forEach(el => {
                         el.removeAttribute('data-processed')
-                        // Ensure classDefs are available to these diagrams if they use them implicitly
-                        // This might require adjusting individual diagram definitions if they don't include their own classDefs
-                        // For now, we assume they are self-contained or use global mermaid styling
+                        const originalContent = el.textContent.trim()
+                        // Prepend the globally defined classDefs (with resolved colors)
+                        // These elements have been modified in HTML to use :::className syntax
+                        el.textContent = `${classDefs}\n${originalContent}`;
                     });
 
                     try {
