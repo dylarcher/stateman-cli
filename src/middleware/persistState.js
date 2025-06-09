@@ -10,7 +10,7 @@ function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
     const later = () => {
-      clearTimeout(timeout);
+      clearTimeout(timeout); // Ensure this line is present
       func(...args);
     };
     clearTimeout(timeout);
@@ -45,10 +45,17 @@ export function persistStateMiddleware({
     );
   }
 
-  const debouncedSave = debounce((stateToSave) => {
+  // This reference will be set once the store is available.
+  let currentStore = null;
+
+  const performSave = () => {
+    if (!currentStore) {
+      console.warn("[Debug persistState] performSave called before store was available.");
+      return;
+    }
+    const stateToSave = currentStore.getState();
     try {
       const selectedState = selector(stateToSave);
-      // If selector returns immutable, convert for serialization, common for top-level state
       const serializableState = isImmutable(selectedState)
         ? selectedState.toJS()
         : selectedState;
@@ -56,13 +63,20 @@ export function persistStateMiddleware({
     } catch (error) {
       console.error("Error saving state to adapter:", error);
     }
-  }, throttleWait);
+  };
 
-  return (store) => (next) => (action) => {
-    const result = next(action);
-    // After action is processed and state is updated, persist it.
-    debouncedSave(store.getState());
-    return result;
+  const debouncedPerformSave = throttleWait > 0
+    ? debounce(performSave, throttleWait)
+    : performSave; // If no wait time, execute directly
+
+  return (store) => {
+    currentStore = store; // Capture the store reference.
+    return (next) => (action) => {
+      const result = next(action);
+      // After action is processed and state is updated, persist it.
+      debouncedPerformSave(); // No arguments needed as performSave gets current state
+      return result;
+    };
   };
 }
 
@@ -78,6 +92,7 @@ export function persistStateMiddleware({
  */
 export function rehydrateState({ key, adapter, deserializer = JSON.parse }) {
   if (!key || !adapter) {
+    // console.warn("Rehydration requires `key` and `adapter`."); // This is not a [Debug persistState] log
     console.warn("Rehydration requires `key` and `adapter`.");
     return undefined;
   }
@@ -89,6 +104,7 @@ export function rehydrateState({ key, adapter, deserializer = JSON.parse }) {
     const plainJSState = deserializer(persistedString);
     return plainJSState ? fromJS(plainJSState) : undefined;
   } catch (error) {
+    // console.error("Error rehydrating state from adapter:", error); // This is not a [Debug persistState] log
     console.error("Error rehydrating state from adapter:", error);
     return undefined;
   }
