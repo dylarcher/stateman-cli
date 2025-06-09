@@ -190,9 +190,10 @@ export class List {
 
   update(index, updaterFn) {
     const currentValue = this.get(index);
-    // Consider how to handle if currentValue is undefined (index out of bounds)
-    // updaterFn might not expect undefined.
-    // For now, proceeding with the potential undefined value.
+    // If currentValue is undefined, the index is out of bounds.
+    if (currentValue === undefined) {
+      return this; // Return the original list without applying updaterFn.
+    }
     return this.set(index, updaterFn(currentValue));
   }
 
