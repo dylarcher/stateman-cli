@@ -5,8 +5,16 @@ import applyMiddleware from '../src/applyMiddleware.js'; // To test enhancer com
 import { createGlobalStore } from '../src/globalStore.js';
 
 // Mocking window for Node.js environment
-global.window = {};
+let originalGlobalWindow;
 
+beforeEach(() => {
+  originalGlobalWindow = global.window;
+  global.window = {};
+});
+
+afterEach(() => {
+  global.window = originalGlobalWindow;
+});
 describe('Redux DevTools Integration', () => {
   const initialState = fromJS({ counter: 0 });
   const reducer = (state = initialState, action) => {
