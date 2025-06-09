@@ -84,41 +84,7 @@ export function derive(computationFn) {
 
     get val() {
       if (currentContext) {
-        // If this derived state is used in another computation,
-        // that computation depends on this derived state.
-        // This derivedState's `updater` function is what needs to be run
-        // if one of *its* dependencies changes.
-        // The `currentContext` (of the outer computation) needs to be notified
-        // when `derivedVal` changes.
-        // This is tricky: a derived state's value changes when its *own* updater runs.
-        // So, the dependents of a derived state are essentially depending on its `updater` to have run.
-        // For now, let's assume `derive` doesn't directly trigger its own dependents when its value changes.
-        // Instead, if a `derive` is nested, the outer `derive` will re-evaluate and get the new `.val`.
-        // This model might be too simple for complex chains.
-        // A more robust model would have derivedState also call its own _dependents when its value changes.
-        // Let's refine this: when derivedState.val is read, currentContext depends on it.
-        // When derivedVal is updated by its *own* updater, it should notify its dependents.
-        // So, the updater needs to also call derivedState._dependents.
-
-        // Let's re-think the updater for derive:
-        // The updater for derive should:
-        // 1. Re-calculate its own value.
-        // 2. If its value changed, notify *its* dependents.
-        // This means `derive` itself needs a mechanism like state's setter.
-
-        // Let's stick to the simpler model first based on the prompt, where derive creates a readonly .val
-        // and re-computation is handled by the initial setup.
-        // If `d1 = derive(() => s1.val + s2.val)`
-        // and `d2 = derive(() => d1.val * 2)`
-        // When s1 changes, d1's updater runs, d1.val changes.
-        // Then d2's updater (which depends on d1.val) must run.
-        // This means d1.val getter must register d2's updater.
-        // And when d1's internal value changes, it must trigger its dependents.
-
-        // Corrected getter for derivedState:
-        if (currentContext) {
-          derivedState._dependents.add(currentContext);
-        }
+        derivedState._dependents.add(currentContext);
       }
       return derivedVal;
     },
