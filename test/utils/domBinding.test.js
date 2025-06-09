@@ -13,6 +13,12 @@ import {
 
 // JSDOM setup
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+const originalGlobals = {
+  document: global.document,
+  window: global.window,
+  HTMLElement: global.HTMLElement,
+  Node: global.Node,
+};
 global.document = dom.window.document;
 global.window = dom.window;
 global.HTMLElement = dom.window.HTMLElement;
