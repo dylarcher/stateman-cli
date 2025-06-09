@@ -30,7 +30,7 @@ describe('localStorageAdapter', () => {
   });
 
   test('getItem should retrieve and parse item from localStorage', () => {
-    mockLocalStorage.getItem.mock.mockImplementationOnce(() => JSON.stringify({ data: 'test' }));
+    mockLocalStorage.getItem.mockImplementationOnce(() => JSON.stringify({ data: 'test' }));
     const item = localStorageAdapter.getItem('myKey');
     assert.strictEqual(mockLocalStorage.getItem.mock.calls.length, 1);
     assert.deepStrictEqual(mockLocalStorage.getItem.mock.calls[0].arguments, ['myKey']);
