@@ -50,7 +50,9 @@ export function persistStateMiddleware({
 
   const performSave = () => {
     if (!currentStore) {
-      console.warn("[Debug persistState] performSave called before store was available.");
+      console.warn(
+        "[Debug persistState] performSave called before store was available.",
+      );
       return;
     }
     const stateToSave = currentStore.getState();
@@ -65,9 +67,8 @@ export function persistStateMiddleware({
     }
   };
 
-  const debouncedPerformSave = throttleWait > 0
-    ? debounce(performSave, throttleWait)
-    : performSave; // If no wait time, execute directly
+  const debouncedPerformSave =
+    throttleWait > 0 ? debounce(performSave, throttleWait) : performSave; // If no wait time, execute directly
 
   return (store) => {
     currentStore = store; // Capture the store reference.
