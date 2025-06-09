@@ -3,7 +3,6 @@
  */
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 // Use our custom VanJS utilities
-import { add as customAdd } from '../../src/utils/customVanUtils.js';
 import { createScopedState } from '../../src/scopedState.js'; // This now uses our custom state/derive
 import {
   bindProperty,
