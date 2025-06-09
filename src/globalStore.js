@@ -62,7 +62,7 @@ function createGlobalStore(reducer, initialState, options = {}) {
       // Ensure the state returned is always an instance of our custom immutable Map if it wasn't already.
       // Note: If the root state could be a List, fromJS(state) would be more appropriate.
       // Assuming root state is object-like, similar to original ImmutableMap(state).
-      return isImmutable(state) ? state : new CustomMap(state)
+      return isImmutable(state) ? state : fromJS(state)
     },
     actions: {} // Initialize actions object
   }
