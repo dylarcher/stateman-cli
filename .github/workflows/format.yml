@@ -1,38 +1,27 @@
-name: Prettier
-
-on:
-  pull_request:
-    branches:
-      - dev
-      - main
-
-  schedule:
-    - cron: '0 2 * * *' # Runs daily at 2 AM UTC
+name: Format code using Biome
+'on': [pull_request]
 
 jobs:
   format:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        ref: ${{ github.head_ref }}
-
-    - name: NodeJS environment setup
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18.x'
-
-    - name: Project prerequisites setup
-      run: npm install
-
-    - name: Format project source code
-      run: npm run format
-
-    - name: Check-in change(s) to project
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add -A
-        git diff --staged --quiet || (git commit -m "Automated formatting" && git push)
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: NodeJS environment setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - name: Project prerequisites setup
+        run: npm ci
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+      - name: Format project source code
+        run: npm run format
+      - name: Check-in change(s) to project
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --staged --quiet || (git commit -m "Automated formatting" && git push)

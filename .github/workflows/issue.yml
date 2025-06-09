@@ -1,0 +1,31 @@
+name: Summarize new issues using AI
+'on':
+  issues:
+    types: [opened]
+
+jobs:
+  summarize:
+    permissions:
+      contents: read
+      issues: write
+      models: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Generate concise AI summary
+        id: inference
+        uses: actions/ai-inference@v1
+        with:
+          prompt: |
+            Summarize the following GitHub issue clearly and concisely in one paragraph:
+            Title: ${{ github.event.issue.title }}
+            Body: ${{ github.event.issue.body }}
+      - name: Add summary comment to issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment $ISSUE_NUMBER --body '### 📝 AI Summary
+
+${{ steps.inference.outputs.response }}'

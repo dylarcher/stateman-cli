@@ -1,5 +1,6 @@
-import { Map as ImmutableMap, isImmutable } from 'immutable'
-import { createStore as reduxCreateStore } from 'redux'
+import { Map as CustomMap, List as CustomList, isImmutable } from './utils/immutableUtils.js'
+// import { createStore as reduxCreateStore } from 'redux' // Remove Redux import
+import { createStore as customCreateStore } from './utils/customReduxUtils.js' // Import custom createStore
 import { compose } from './applyMiddleware.js'
 
 /**
@@ -37,13 +38,18 @@ function createGlobalStore(reducer, initialState, options = {}) {
   if (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) {
     composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
       serialize: {
-        immutable: ImmutableMap,
+        // Pass our custom Map and List constructors to the DevTools
+        immutable: {
+          Map: CustomMap,
+          List: CustomList,
+        },
         replacer: (key, value) => (isImmutable(value) ? value.toJS() : value),
       }
     })
   }
 
-  const store = reduxCreateStore(
+  // Use the custom createStore function
+  const store = customCreateStore(
     wrappedReducer,
     initialState,
     enhancer ? composeEnhancers(enhancer) : composeEnhancers()
@@ -53,7 +59,10 @@ function createGlobalStore(reducer, initialState, options = {}) {
     ...store,
     getState: () => {
       const state = store.getState()
-      return isImmutable(state) ? state : ImmutableMap(state)
+      // Ensure the state returned is always an instance of our custom immutable Map if it wasn't already.
+      // Note: If the root state could be a List, fromJS(state) would be more appropriate.
+      // Assuming root state is object-like, similar to original ImmutableMap(state).
+      return isImmutable(state) ? state : fromJS(state)
     },
     actions: {} // Initialize actions object
   }
