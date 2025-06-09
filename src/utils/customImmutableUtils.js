@@ -1,13 +1,13 @@
 // src/utils/customImmutableUtils.js
 
-const IMMUTABLE_MARKER = Symbol('isImmutable');
+const IMMUTABLE_MARKER = Symbol("isImmutable");
 
 export function isImmutable(value) {
   return !!(value && value[IMMUTABLE_MARKER]);
 }
 
 export function fromJS(jsValue) {
-  if (jsValue === null || typeof jsValue !== 'object') {
+  if (jsValue === null || typeof jsValue !== "object") {
     return jsValue;
   }
 
@@ -48,14 +48,22 @@ export class Map {
 
   getIn(path, defaultValue) {
     let currentValue = this;
-    for (let i = 0; i < path.length; i++){
+    for (let i = 0; i < path.length; i++) {
       const key = path[i];
-      if (currentValue instanceof Map && currentValue._data.hasOwnProperty(key)) {
-        currentValue = currentValue._data[key]
-      } else if (currentValue instanceof List && Number.isInteger(key) && key >=0 && key < currentValue._data.length) {
-        currentValue = currentValue._data[key]
+      if (
+        currentValue instanceof Map &&
+        currentValue._data.hasOwnProperty(key)
+      ) {
+        currentValue = currentValue._data[key];
+      } else if (
+        currentValue instanceof List &&
+        Number.isInteger(key) &&
+        key >= 0 &&
+        key < currentValue._data.length
+      ) {
+        currentValue = currentValue._data[key];
       } else {
-        return defaultValue
+        return defaultValue;
       }
     }
     return currentValue;
@@ -80,7 +88,7 @@ export class Map {
       // If the path does not exist or is not an immutable structure, create it.
       // Determine whether to create a Map or List based on the next key in the path.
       const nextKey = path[1];
-      if (typeof nextKey === 'number') {
+      if (typeof nextKey === "number") {
         newBranch = new List().setIn(path.slice(1), value);
       } else {
         newBranch = new Map().setIn(path.slice(1), value);
@@ -108,7 +116,7 @@ export class Map {
       if (Object.prototype.hasOwnProperty.call(this._data, key)) {
         const value = this._data[key];
         // Check if the value has a toJS method (i.e., it's one of our immutable instances)
-        if (value && typeof value.toJS === 'function') {
+        if (value && typeof value.toJS === "function") {
           plainObject[key] = value.toJS();
         } else {
           plainObject[key] = value;
@@ -121,7 +129,8 @@ export class Map {
   equals(other) {
     if (this === other) return true;
     if (!(other instanceof Map)) return false;
-    if (Object.keys(this._data).length !== Object.keys(other._data).length) return false;
+    if (Object.keys(this._data).length !== Object.keys(other._data).length)
+      return false;
 
     for (const key in this._data) {
       if (!Object.prototype.hasOwnProperty.call(other._data, key)) return false;
@@ -193,7 +202,12 @@ export class List {
       const key = path[i];
       if (current instanceof Map && current._data.hasOwnProperty(key)) {
         current = current._data[key];
-      } else if (current instanceof List && Number.isInteger(key) && key >= 0 && key < current._data.length) {
+      } else if (
+        current instanceof List &&
+        Number.isInteger(key) &&
+        key >= 0 &&
+        key < current._data.length
+      ) {
         current = current._data[key];
       } else {
         return defaultValue;
@@ -211,7 +225,7 @@ export class List {
 
     const index = path[0];
     // Ensure index is a number for List operations
-    if (typeof index !== 'number' || index < 0) {
+    if (typeof index !== "number" || index < 0) {
       // Or throw an error, for now, return original if path is invalid for a list
       console.warn(`Invalid path segment for List: ${index}`);
       return this;
@@ -229,7 +243,7 @@ export class List {
     } else {
       // If the path does not exist or is not an immutable structure at the current index, create it.
       const nextKey = path[1];
-      if (typeof nextKey === 'number') {
+      if (typeof nextKey === "number") {
         newBranch = new List().setIn(path.slice(1), value);
       } else {
         newBranch = new Map().setIn(path.slice(1), value);
@@ -247,7 +261,7 @@ export class List {
   }
 
   toJS() {
-    return this._data.map(value => {
+    return this._data.map((value) => {
       if (isImmutable(value)) {
         return value.toJS();
       }

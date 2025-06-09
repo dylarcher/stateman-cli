@@ -6,27 +6,27 @@
 // import { isImmutable, fromJS } from './customImmutableUtils.js'; // Not strictly needed for createStore logic itself unless we enforce state type here
 
 const ActionTypes = {
-  INIT: '@@redux/INIT',
-  REPLACE: '@@redux/REPLACE' // Not implementing replaceReducer in this version
+  INIT: "@@redux/INIT",
+  REPLACE: "@@redux/REPLACE", // Not implementing replaceReducer in this version
 };
 
 export function createStore(reducer, initialState, enhancer) {
-  if (typeof initialState === 'function' && typeof enhancer === 'undefined') {
+  if (typeof initialState === "function" && typeof enhancer === "undefined") {
     enhancer = initialState;
     initialState = undefined;
   }
 
-  if (typeof enhancer !== 'undefined') {
-    if (typeof enhancer !== 'function') {
-      throw new Error('Expected the enhancer to be a function.');
+  if (typeof enhancer !== "undefined") {
+    if (typeof enhancer !== "function") {
+      throw new Error("Expected the enhancer to be a function.");
     }
     // The enhancer is applied by calling it with createStore itself.
     // It should return a new store creator function which is then called.
     return enhancer(createStore)(reducer, initialState);
   }
 
-  if (typeof reducer !== 'function') {
-    throw new Error('Expected the reducer to be a function.');
+  if (typeof reducer !== "function") {
+    throw new Error("Expected the reducer to be a function.");
   }
 
   let currentReducer = reducer;
@@ -44,25 +44,25 @@ export function createStore(reducer, initialState, enhancer) {
   function getState() {
     if (isDispatching) {
       throw new Error(
-        'You may not call store.getState() while the reducer is executing. ' +
-        'The reducer has already received the state as an argument. ' +
-        'Pass it down from the top reducer instead of reading it from the store.'
+        "You may not call store.getState() while the reducer is executing. " +
+          "The reducer has already received the state as an argument. " +
+          "Pass it down from the top reducer instead of reading it from the store.",
       );
     }
     return currentState;
   }
 
   function subscribe(listener) {
-    if (typeof listener !== 'function') {
-      throw new Error('Expected the listener to be a function.');
+    if (typeof listener !== "function") {
+      throw new Error("Expected the listener to be a function.");
     }
 
     if (isDispatching) {
       throw new Error(
-        'You may not call store.subscribe() while the reducer is executing. ' +
-        'If you would like to be notified after the store has been updated, subscribe from a ' +
-        'component and invoke store.getState() in the callback to access the latest state. ' +
-        'See https://redux.js.org/api/store#subscribelistener for more details.'
+        "You may not call store.subscribe() while the reducer is executing. " +
+          "If you would like to be notified after the store has been updated, subscribe from a " +
+          "component and invoke store.getState() in the callback to access the latest state. " +
+          "See https://redux.js.org/api/store#subscribelistener for more details.",
       );
     }
 
@@ -77,8 +77,8 @@ export function createStore(reducer, initialState, enhancer) {
 
       if (isDispatching) {
         throw new Error(
-          'You may not unsubscribe from a store listener while the reducer is executing. ' +
-          'See https://redux.js.org/api/store#subscribelistener for more details.'
+          "You may not unsubscribe from a store listener while the reducer is executing. " +
+            "See https://redux.js.org/api/store#subscribelistener for more details.",
         );
       }
 
@@ -91,15 +91,15 @@ export function createStore(reducer, initialState, enhancer) {
   }
 
   function dispatch(action) {
-    if (typeof action.type === 'undefined') {
+    if (typeof action.type === "undefined") {
       throw new Error(
         'Actions may not have an undefined "type" property. ' +
-        'Have you misspelled a constant?'
+          "Have you misspelled a constant?",
       );
     }
 
     if (isDispatching) {
-      throw new Error('Reducers may not dispatch actions.');
+      throw new Error("Reducers may not dispatch actions.");
     }
 
     try {
@@ -109,7 +109,7 @@ export function createStore(reducer, initialState, enhancer) {
       isDispatching = false;
     }
 
-    const listeners = currentListeners = nextListeners;
+    const listeners = (currentListeners = nextListeners);
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i];
       listener();
@@ -124,7 +124,6 @@ export function createStore(reducer, initialState, enhancer) {
   if (currentState === undefined) {
     dispatch({ type: ActionTypes.INIT });
   }
-
 
   return {
     dispatch,

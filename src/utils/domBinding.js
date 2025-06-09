@@ -24,7 +24,8 @@ export function bindProperty(element, propertyName, scopedState) {
     );
     return;
   }
-  derive(() => { // Use custom derive
+  derive(() => {
+    // Use custom derive
     element[propertyName] = scopedState.val;
   });
 }
@@ -48,7 +49,8 @@ export function bindAttribute(element, attributeName, scopedState) {
     );
     return;
   }
-  derive(() => { // Use custom derive
+  derive(() => {
+    // Use custom derive
     if (typeof scopedState.val === "boolean") {
       if (scopedState.val) {
         element.setAttribute(attributeName, "");
@@ -89,7 +91,8 @@ export function bindChildren(parentElement, scopedState) {
     );
     return;
   }
-  derive(() => { // Use custom derive
+  derive(() => {
+    // Use custom derive
     const newContent = scopedState.val;
     while (parentElement.firstChild) {
       parentElement.removeChild(parentElement.firstChild);

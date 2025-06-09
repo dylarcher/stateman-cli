@@ -31,18 +31,18 @@ export function state(initialValue) {
         s._val = newValue;
         // Notify all dependents
         // Iterate over a copy in case a dependent modifies the set during iteration (though less likely here)
-        [...s._dependents].forEach(dep => dep());
+        [...s._dependents].forEach((dep) => dep());
       }
     },
 
     // For direct subscription if ever needed, not strictly part of VanJS core API this way
     // but useful for understanding. `derive` and `add` are the primary consumers.
     _subscribe(dependentFn) {
-        s._dependents.add(dependentFn);
+      s._dependents.add(dependentFn);
     },
     _unsubscribe(dependentFn) {
-        s._dependents.delete(dependentFn);
-    }
+      s._dependents.delete(dependentFn);
+    },
   };
   return s;
 }
@@ -60,9 +60,9 @@ export function derive(computationFn) {
     const oldContext = currentContext;
     currentContext = updater; // Register this updater for states accessed by computationFn
     try {
-        derivedVal = computationFn();
+      derivedVal = computationFn();
     } finally {
-        currentContext = oldContext;
+      currentContext = oldContext;
     }
     // Unlike state's setter, derive doesn't trigger its own _dependents here.
     // If a derived state is used in another derivation, that outer derivation
@@ -117,7 +117,7 @@ export function derive(computationFn) {
 
         // Corrected getter for derivedState:
         if (currentContext) {
-            derivedState._dependents.add(currentContext);
+          derivedState._dependents.add(currentContext);
         }
       }
       return derivedVal;
@@ -125,19 +125,19 @@ export function derive(computationFn) {
     // No setter for derived state's .val externally.
     // Internal update function that also notifies dependents of the derived state
     _updateAndNotify() {
-        const oldInternalVal = derivedVal;
-        const oldCtx = currentContext;
-        currentContext = derivedState._updateAndNotify; // This derived state's update function is the context for its computation
-        try {
-            derivedVal = computationFn();
-        } finally {
-            currentContext = oldCtx;
-        }
+      const oldInternalVal = derivedVal;
+      const oldCtx = currentContext;
+      currentContext = derivedState._updateAndNotify; // This derived state's update function is the context for its computation
+      try {
+        derivedVal = computationFn();
+      } finally {
+        currentContext = oldCtx;
+      }
 
-        if (oldInternalVal !== derivedVal) {
-            [...derivedState._dependents].forEach(dep => dep());
-        }
-    }
+      if (oldInternalVal !== derivedVal) {
+        [...derivedState._dependents].forEach((dep) => dep());
+      }
+    },
   };
 
   // Initial run and dependency tracking for the derived state.
@@ -153,14 +153,14 @@ export function derive(computationFn) {
   return derivedState;
 }
 
-
 export function add(parentElement, childSource) {
   let currentDOMNodes = []; // Keep track of DOM nodes added by this function
 
   const updateDOM = (newValue) => {
     // Clear previous nodes
-    currentDOMNodes.forEach(node => {
-      if (node.remove) node.remove(); // For DOM elements
+    currentDOMNodes.forEach((node) => {
+      if (node.remove)
+        node.remove(); // For DOM elements
       else if (node.parentNode) node.parentNode.removeChild(node); // For text nodes
     });
     currentDOMNodes = [];
@@ -170,9 +170,10 @@ export function add(parentElement, childSource) {
       if (Array.isArray(child)) {
         child.forEach(appendChild);
       } else {
-        const node = (typeof child === "string" || typeof child === "number")
-          ? document.createTextNode(String(child))
-          : child;
+        const node =
+          typeof child === "string" || typeof child === "number"
+            ? document.createTextNode(String(child))
+            : child;
         parentElement.appendChild(node);
         currentDOMNodes.push(node);
       }
@@ -180,7 +181,7 @@ export function add(parentElement, childSource) {
     appendChild(newValue);
   };
 
-  if (typeof childSource === 'function') {
+  if (typeof childSource === "function") {
     // This is a reactive binding, setup derivation-like behavior
     const effectFn = () => {
       const newValue = childSource(); // Run the user's function to get the new value/DOM node
@@ -204,27 +205,34 @@ export function add(parentElement, childSource) {
 
 // Mock document and TextNode for environments without DOM (like this test environment)
 // This is very basic and only for the `add` function to not throw errors.
-if (typeof document === 'undefined') {
+if (typeof document === "undefined") {
   global.document = {
     createTextNode: (text) => ({
-        nodeType: 3,
-        textContent: text,
-        remove: function() { this.parentNode = null; }, // mock removal
-        parentNode: null, // mock parent
+      nodeType: 3,
+      textContent: text,
+      remove: function () {
+        this.parentNode = null;
+      }, // mock removal
+      parentNode: null, // mock parent
     }),
     createElement: (tagName) => ({
-        nodeType: 1,
-        tagName: tagName.toUpperCase(),
-        children: [],
-        appendChild: function(child) { this.children.push(child); child.parentNode = this; },
-        removeChild: function(child) {
-            const index = this.children.indexOf(child);
-            if (index > -1) this.children.splice(index, 1);
-            child.parentNode = null;
-        },
-        innerHTML: '', // roughly for clearing
-        remove: function() { this.parentNode = null; }
-    })
+      nodeType: 1,
+      tagName: tagName.toUpperCase(),
+      children: [],
+      appendChild: function (child) {
+        this.children.push(child);
+        child.parentNode = this;
+      },
+      removeChild: function (child) {
+        const index = this.children.indexOf(child);
+        if (index > -1) this.children.splice(index, 1);
+        child.parentNode = null;
+      },
+      innerHTML: "", // roughly for clearing
+      remove: function () {
+        this.parentNode = null;
+      },
+    }),
   };
   global.Node = { TEXT_NODE: 3, ELEMENT_NODE: 1 };
 }

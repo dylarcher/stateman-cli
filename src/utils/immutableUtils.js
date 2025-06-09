@@ -1,9 +1,4 @@
-import {
-  Map,
-  List,
-  fromJS,
-  isImmutable,
-} from "./customImmutableUtils.js";
+import { Map, List, fromJS, isImmutable } from "./customImmutableUtils.js";
 
 /**
  * Re-exports custom fromJS() for converting plain JavaScript objects and arrays
@@ -171,7 +166,9 @@ export function pushValue(listInput, value) {
     if (converted instanceof List) {
       targetList = converted;
     } else {
-      console.warn("pushValue: input did not convert to a List. Starting with an empty List.");
+      console.warn(
+        "pushValue: input did not convert to a List. Starting with an empty List.",
+      );
       targetList = new List();
     }
   }
@@ -198,7 +195,9 @@ export function removeValue(listInput, index) {
     if (converted instanceof List) {
       targetList = converted;
     } else {
-      console.warn("removeValue: input did not convert to a List. Starting with an empty List.");
+      console.warn(
+        "removeValue: input did not convert to a List. Starting with an empty List.",
+      );
       targetList = new List();
     }
   }
