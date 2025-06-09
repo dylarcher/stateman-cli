@@ -38,7 +38,7 @@ export class Map {
   }
 
   get(key, defaultValue) {
-    return this._data.hasOwnProperty(key) ? this._data[key] : defaultValue;
+    return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : defaultValue;
   }
 
   set(key, value) {
