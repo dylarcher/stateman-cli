@@ -1,4 +1,4 @@
-import van from 'vanjs-core'
+import { state, derive } from './utils/customVanUtils.js'; // Correct path from src/ to src/utils/
 import { connectToGlobalStore } from './bridge.js'
 import { fromJS, isImmutable } from './utils/immutableUtils.js'
 
@@ -29,7 +29,7 @@ function createScopedState(initialValue, options = {}) {
     finalInitialValue = fromJS(initialValue)
   }
 
-  const scopedState = van.state(finalInitialValue)
+  const scopedState = state(finalInitialValue); // Use custom state
 
   // The previous Object.defineProperty for 'val' when useImmutable was true has been removed.
   // It was not functionally enforcing immutability on ongoing assignments due to complexities
@@ -56,7 +56,7 @@ function createScopedState(initialValue, options = {}) {
  * @returns {object} A VanJS derived state object. If globalStore is provided, it might be augmented with bridge methods.
  */
 function deriveScopedState(derivationFn, options = {}) {
-  const derivedState = van.derive(derivationFn)
+  const derivedState = derive(derivationFn); // Use custom derive
   if (options.globalStore) {
     // Attaching bridge to derivedState directly. Use cases might be limited.
     connectToGlobalStore(derivedState, options.globalStore)

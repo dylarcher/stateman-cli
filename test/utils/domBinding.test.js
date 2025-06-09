@@ -167,7 +167,9 @@ describe('DOM Binding Utilities', () => {
         assert.strictEqual(element.firstChild.tagName, "P");
         assert.strictEqual(element.firstChild.textContent, "VanJS Child 1");
 
-        state.val = van.tags.div("VanJS Child 2");
+        const div = document.createElement('div');
+        div.textContent = "Custom VanJS Child 2";
+        state.val = div; // Update the state's value
         await new Promise(r => setTimeout(r,0));
         assert.strictEqual(element.firstChild.tagName, "DIV");
         assert.strictEqual(element.firstChild.textContent, "VanJS Child 2");

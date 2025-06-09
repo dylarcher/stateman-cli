@@ -15,6 +15,7 @@ beforeEach(() => {
 afterEach(() => {
   global.window = originalGlobalWindow;
 });
+
 describe('Redux DevTools Integration', () => {
   const initialState = fromJS({ counter: 0 });
   const reducer = (state = initialState, action) => {
