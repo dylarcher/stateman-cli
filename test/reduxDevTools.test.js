@@ -2,7 +2,8 @@
  * @jest-environment jsdom
  */
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals'
-import { fromJS, Map as ImmutableMap } from 'immutable'
+// Use our custom immutable utils
+import { fromJS, Map as CustomMap, List as CustomList } from '../src/utils/immutableUtils.js';
 import applyMiddleware from '../src/applyMiddleware.js' // To test enhancer composition
 import { createGlobalStore } from '../src/globalStore.js'
 
@@ -71,7 +72,11 @@ describe('Redux DevTools Integration', () => {
     expect(mockDevToolsExtensionCompose).toHaveBeenCalledWith(
       expect.objectContaining({
         serialize: expect.objectContaining({
-          immutable: ImmutableMap, // Check if 'immutable' key exists
+          // createGlobalStore passes an object { Map: CustomMap, List: CustomList } here
+          immutable: expect.objectContaining({
+            Map: CustomMap,
+            List: CustomList
+          }),
           replacer: expect.any(Function)
         })
       })

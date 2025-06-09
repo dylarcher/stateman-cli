@@ -1,30 +1,25 @@
-import Immutable, {
-  isImmutable as checkIsImmutable,
-  fromJS,
-  List,
+import {
   Map,
-} from "immutable";
+  List,
+  fromJS,
+  isImmutable,
+} from "./customImmutableUtils.js";
 
 /**
- * Re-exports the entire Immutable.js library.
- */
-export { Immutable };
-
-/**
- * Re-exports Immutable.fromJS() for converting plain JavaScript objects and arrays
+ * Re-exports custom fromJS() for converting plain JavaScript objects and arrays
  * into their deeply immutable counterparts.
  * @template T
  * @param {any} jsValue - The plain JavaScript value to convert.
- * @returns {T} The new immutable structure (e.g., Immutable.Map, Immutable.List).
+ * @returns {T} The new immutable structure (e.g., Map, List).
  */
 export { fromJS };
 
 /**
- * Re-exports Immutable.isImmutable() for checking if a value is an Immutable.js collection.
+ * Re-exports custom isImmutable() for checking if a value is a custom immutable collection.
  * @param {any} maybeImmutable - The value to check.
- * @returns {boolean} True if the value is an Immutable.js collection, false otherwise.
+ * @returns {boolean} True if the value is a custom immutable collection, false otherwise.
  */
-export const isImmutable = checkIsImmutable;
+export { isImmutable };
 
 /**
  * Safely gets a value from an Immutable collection.
@@ -157,49 +152,58 @@ export function toggleIn(collection, path) {
 }
 
 /**
- * Pushes a value to an Immutable.List.
- * If the collection is not an Immutable.List, it attempts to convert it.
- * @param {Immutable.List | any} list - The Immutable.List or a convertible value.
+ * Pushes a value to a custom List.
+ * If the collection is not a List, it attempts to convert it.
+ * If conversion fails or results in a non-List, an empty List is used.
+ * @param {List | any} listInput - The List or a convertible value (e.g., an array).
  * @param {any} value - The value to push.
- * @returns {Immutable.List} The new Immutable.List with the value pushed.
+ * @returns {List} The new List with the value pushed.
  */
-export function pushValue(list, value) {
+export function pushValue(listInput, value) {
   let targetList;
-  if (!List.isList(list)) {
-    console.warn(
-      "pushValue called on a non-List. Attempting to convert fromJS, then to List.",
-    );
-    const immutableCollection = fromJS(list);
-    targetList = List.isList(immutableCollection)
-      ? immutableCollection
-      : List();
+  if (listInput instanceof List) {
+    targetList = listInput;
   } else {
-    targetList = list;
+    console.warn(
+      "pushValue called on a non-List or non-array. Attempting to convert fromJS.",
+    );
+    const converted = fromJS(listInput);
+    if (converted instanceof List) {
+      targetList = converted;
+    } else {
+      console.warn("pushValue: input did not convert to a List. Starting with an empty List.");
+      targetList = new List();
+    }
   }
   return targetList.push(value);
 }
 
 /**
- * Removes a value by index from an Immutable.List.
- * If the collection is not an Immutable.List, it attempts to convert it.
- * @param {Immutable.List | any} list - The Immutable.List or a convertible value.
+ * Removes a value by index from a custom List.
+ * If the collection is not a List, it attempts to convert it.
+ * If conversion fails or results in a non-List, an empty List is used for the operation (which will be a no-op).
+ * @param {List | any} listInput - The List or a convertible value (e.g., an array).
  * @param {number} index - The index to remove.
- * @returns {Immutable.List} The new Immutable.List with the value removed.
+ * @returns {List} The new List with the value removed, or the original/empty if conversion failed.
  */
-export function removeValue(list, index) {
+export function removeValue(listInput, index) {
   let targetList;
-  if (!List.isList(list)) {
-    console.warn(
-      "removeValue called on a non-List. Attempting to convert fromJS, then to List.",
-    );
-    const immutableCollection = fromJS(list);
-    targetList = List.isList(immutableCollection)
-      ? immutableCollection
-      : List();
+  if (listInput instanceof List) {
+    targetList = listInput;
   } else {
-    targetList = list;
+    console.warn(
+      "removeValue called on a non-List or non-array. Attempting to convert fromJS.",
+    );
+    const converted = fromJS(listInput);
+    if (converted instanceof List) {
+      targetList = converted;
+    } else {
+      console.warn("removeValue: input did not convert to a List. Starting with an empty List.");
+      targetList = new List();
+    }
   }
   return targetList.delete(index);
 }
 
+// Re-export the custom Map and List implementations
 export { List, Map };

@@ -2,8 +2,9 @@
  * @jest-environment jsdom
  */
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
-import van from 'vanjs-core';
-import { createScopedState } from '../../src/scopedState.js';
+// Use our custom VanJS utilities
+import { state as customState, derive as customDerive, add as customAdd } from '../../src/utils/customVanUtils.js';
+import { createScopedState } from '../../src/scopedState.js'; // This now uses our custom state/derive
 import {
   bindProperty,
   bindAttribute,
@@ -150,19 +151,22 @@ describe('DOM Binding Utilities', () => {
   });
 
   describe('bindChildrenWithVanAdd', () => {
-    test('should use van.add to bind children reactively', async () => {
-        const state = createScopedState(van.tags.p("VanJS Child 1"));
-        bindChildrenWithVanAdd(element, state); // Corrected: parentElement should be element
-        // van.add and van.derive are generally synchronous for initial render unless value is promise
-        // but for safety with testing updates, small async delay is okay.
-        await new Promise(r => setTimeout(r,0));
-        expect(element.firstChild.tagName).toBe("P");
-        expect(element.firstChild.textContent).toBe("VanJS Child 1");
+    test('should use custom add to bind children reactively', async () => {
+        const p = document.createElement('p');
+        p.textContent = "Custom VanJS Child 1";
+        const state = createScopedState(p); // createScopedState uses our custom state
 
-        state.val = van.tags.div("VanJS Child 2");
+        bindChildrenWithVanAdd(element, state);
+        await new Promise(r => setTimeout(r,0)); // Allow for async updates if any (though our add is sync)
+        expect(element.firstChild.tagName).toBe("P");
+        expect(element.firstChild.textContent).toBe("Custom VanJS Child 1");
+
+        const div = document.createElement('div');
+        div.textContent = "Custom VanJS Child 2";
+        state.val = div; // Update the state's value
         await new Promise(r => setTimeout(r,0));
         expect(element.firstChild.tagName).toBe("DIV");
-        expect(element.firstChild.textContent).toBe("VanJS Child 2");
+        expect(element.firstChild.textContent).toBe("Custom VanJS Child 2");
     });
 
     test('should log error with invalid arguments for bindChildrenWithVanAdd', () => {

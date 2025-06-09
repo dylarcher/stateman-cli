@@ -1,6 +1,6 @@
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import {
-  Immutable,
+  // Immutable, // Removed - not exported by our utils
   fromJS,
   isImmutable,
   safeGet,
@@ -32,8 +32,8 @@ describe('Immutable Utilities', () => {
   const immutableMap = fromJS(plainObject);
   const immutableList = fromJS(plainArray);
 
-  test('should re-export Immutable namespace, fromJS, and isImmutable', () => {
-    expect(Immutable).toBeDefined();
+  test('should re-export fromJS, and isImmutable', () => {
+    // expect(Immutable).toBeDefined(); // Removed
     expect(typeof fromJS).toBe('function');
     expect(typeof isImmutable).toBe('function');
     expect(isImmutable(immutableMap)).toBe(true);
@@ -43,9 +43,9 @@ describe('Immutable Utilities', () => {
   test('should re-export Map and List', () => {
     expect(ImmutableMap).toBeDefined();
     expect(ImmutableList).toBeDefined();
-    const map = ImmutableMap({test:1});
+    const map = new ImmutableMap({test:1}); // Use 'new'
     expect(isImmutable(map) && map.get('test')).toBe(1);
-    const list = ImmutableList([1,2]);
+    const list = new ImmutableList([1,2]); // Use 'new'
     expect(isImmutable(list) && list.get(0)).toBe(1);
   });
 
@@ -146,41 +146,42 @@ describe('Immutable Utilities', () => {
   describe('pushValue', () => {
     test('should push value to immutable list', () => {
       const newList = pushValue(immutableList, 30);
-      expect(newList.size).toBe(3);
+      expect(newList._data.length).toBe(3); // Use ._data.length
       expect(newList.get(2)).toBe(30);
     });
     test('should convert plain array and push value', () => {
       const newList = pushValue(plainArray, 30);
-      expect(newList.size).toBe(3);
+      expect(newList._data.length).toBe(3); // Use ._data.length
       expect(newList.get(2)).toBe(30);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('pushValue called on a non-List. Attempting to convert fromJS, then to List.');
+      // The warning message in immutableUtils.js for pushValue/removeValue was updated
+      expect(consoleWarnSpy).toHaveBeenCalledWith('pushValue called on a non-List or non-array. Attempting to convert fromJS.');
     });
      test('should handle non-list immutable collection for pushValue by creating new List', () => {
-      const newList = pushValue(immutableMap, 30);
-      expect(ImmutableList.isList(newList)).toBe(true);
-      expect(newList.size).toBe(1);
+      const newList = pushValue(immutableMap, 30); // immutableMap is our CustomMap
+      expect(newList instanceof ImmutableList).toBe(true); // Use instanceof
+      expect(newList._data.length).toBe(1); // Use ._data.length
       expect(newList.get(0)).toBe(30);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('pushValue called on a non-List. Attempting to convert fromJS, then to List.');
+      expect(consoleWarnSpy).toHaveBeenCalledWith('pushValue called on a non-List or non-array. Attempting to convert fromJS.');
     });
   });
 
   describe('removeValue', () => {
     test('should remove value from immutable list by index', () => {
       const newList = removeValue(immutableList, 0);
-      expect(newList.size).toBe(1);
+      expect(newList._data.length).toBe(1); // Use ._data.length
       expect(newList.getIn([0, 'x'])).toBe(20);
     });
     test('should convert plain array and remove value', () => {
       const newList = removeValue(plainArray, 0);
-      expect(newList.size).toBe(1);
+      expect(newList._data.length).toBe(1); // Use ._data.length
       expect(newList.getIn([0, 'x'])).toBe(20);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('removeValue called on a non-List. Attempting to convert fromJS, then to List.');
+      expect(consoleWarnSpy).toHaveBeenCalledWith('removeValue called on a non-List or non-array. Attempting to convert fromJS.');
     });
     test('should handle non-list immutable collection for removeValue by creating new List', () => {
-      const newList = removeValue(immutableMap, 0);
-      expect(ImmutableList.isList(newList)).toBe(true);
-      expect(newList.size).toBe(0);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('removeValue called on a non-List. Attempting to convert fromJS, then to List.');
+      const newList = removeValue(immutableMap, 0); // immutableMap is our CustomMap
+      expect(newList instanceof ImmutableList).toBe(true); // Use instanceof
+      expect(newList._data.length).toBe(0); // Use ._data.length
+      expect(consoleWarnSpy).toHaveBeenCalledWith('removeValue called on a non-List or non-array. Attempting to convert fromJS.');
     });
   });
 });

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, jest, test } from '@jest/globals'
-import { fromJS } from 'immutable'
-import van from 'vanjs-core' // Import van for van.derive in new tests
+// Use our custom utils
+import { fromJS } from '../src/utils/immutableUtils.js';
+import { derive as customVanDerive } from '../src/utils/customVanUtils.js'; // Import custom derive
 import { connectToGlobalStore } from '../src/bridge.js'
 import { createGlobalStore } from '../src/globalStore.js'
 import { createScopedState } from '../src/scopedState.js'
@@ -123,7 +124,7 @@ describe('scopedState.createGlobalStateSelector (New Tests - direct use of conne
     const counterSelector = state => state.get('counter')
     const reactiveCounter = scoped.createGlobalStateSelector(counterSelector)
 
-    const derivedDouble = van.derive(() => reactiveCounter.val * 2)
+    const derivedDouble = customVanDerive(() => reactiveCounter.val * 2) // Use custom derive
     expect(derivedDouble.val).toBe(200)
 
     globalStore.dispatch({ type: 'GLOBAL_INCREMENT' })

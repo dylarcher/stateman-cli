@@ -1,5 +1,5 @@
-import { isImmutable } from 'immutable'
-import van from 'vanjs-core'
+import { isImmutable } from './utils/immutableUtils.js'; // Custom isImmutable
+import { state as vanState } from './utils/customVanUtils.js'; // Custom van.state
 
 /**
  * Attaches global store interaction methods to a scoped state's context.
@@ -17,8 +17,8 @@ export function connectToGlobalStore(scopedState, globalStore) {
   /**
    * Retrieves a slice of the global state using a selector function.
    * @template S
-   * @param {function(Immutable.Map): S} selectorFn - A function that takes the global Immutable.js state
-   *                                                  and returns a selected part or derived data.
+   * @param {function(object): S} selectorFn - A function that takes the global state (our custom Map/List)
+   *                                           and returns a selected part or derived data.
    * @returns {S} The selected state.
    */
   scopedState.getGlobal = (selectorFn) => {
@@ -45,7 +45,7 @@ export function connectToGlobalStore(scopedState, globalStore) {
    * Subscribes to changes in a selected slice of the global state.
    * The callback is invoked only when the selected part of the state changes.
    * @template S
-   * @param {function(Immutable.Map): S} selectorFn - A function that selects data from the global state.
+   * @param {function(object): S} selectorFn - A function that selects data from the global state (our custom Map/List).
    * @param {function(S): void} callback - The function to call when the selected state changes.
    * @returns {function} An unsubscribe function.
    */
@@ -62,10 +62,15 @@ export function connectToGlobalStore(scopedState, globalStore) {
     const unsubscribe = globalStore.subscribe(() => {
       const newSelectedState = selectorFn(globalStore.getState())
 
-      // Refactored change detection from previous version for clarity
-      const hasChanged = (isImmutable(lastSelectedState) && isImmutable(newSelectedState))
-        ? !lastSelectedState.equals(newSelectedState)
-        : lastSelectedState !== newSelectedState
+      // Simplified change detection: if new instances are returned on change, !== works.
+      // isImmutable checks can be kept if we add a deep .equals method later.
+      // For now, rely on reference change or custom areEqual.
+      let hasChanged;
+      if (isImmutable(lastSelectedState) && isImmutable(newSelectedState)) {
+        hasChanged = !lastSelectedState.equals(newSelectedState);
+      } else {
+        hasChanged = lastSelectedState !== newSelectedState;
+      }
 
       if (hasChanged) {
         lastSelectedState = newSelectedState
@@ -79,12 +84,12 @@ export function connectToGlobalStore(scopedState, globalStore) {
    * Creates a reactive VanJS state that reflects a selected slice of the global state.
    * The VanJS state automatically updates when the selected global data changes.
    * @template S
-   * @param {function(Immutable.Map): S} selectorFn - A function that selects data from the global state.
+   * @param {function(object): S} selectorFn - A function that selects data from the global state (our custom Map/List).
    * @param {object} [options] - Optional parameters.
    * @param {function(S, S): boolean} [options.areEqual] - Optional custom equality function to determine
    *                                                      if the selected state has changed.
-   *                                                      Defaults to Immutable.is for immutables or === for primitives.
-   * @returns {van.State<S>} A VanJS state object whose .val property holds the selected global data.
+   *                                                      Defaults to strict inequality (!==).
+   * @returns {object} A VanJS-like state object (from customVanUtils) whose .val property holds the selected global data.
    */
   scopedState.createGlobalStateSelector = (selectorFn, options = {}) => {
     if (typeof selectorFn !== 'function') {
@@ -93,7 +98,7 @@ export function connectToGlobalStore(scopedState, globalStore) {
 
     const { areEqual } = options
     const initialSelectedData = selectorFn(globalStore.getState())
-    const reactiveGlobalState = van.state(initialSelectedData)
+    const reactiveGlobalState = vanState(initialSelectedData) // Use custom vanState
 
     let lastSelectedStateForVan = initialSelectedData
 
@@ -102,10 +107,11 @@ export function connectToGlobalStore(scopedState, globalStore) {
       let changed = false
       if (typeof areEqual === 'function') {
         changed = !areEqual(lastSelectedStateForVan, newSelectedState)
+      } else if (isImmutable(lastSelectedStateForVan) && isImmutable(newSelectedState)) {
+        changed = !lastSelectedStateForVan.equals(newSelectedState);
       } else {
-        changed = (isImmutable(lastSelectedStateForVan) && isImmutable(newSelectedState))
-          ? !lastSelectedStateForVan.equals(newSelectedState)
-          : lastSelectedStateForVan !== newSelectedState
+        // Default to strict inequality for non-custom-immutable types or mixed types.
+        changed = lastSelectedStateForVan !== newSelectedState;
       }
 
       if (changed) {

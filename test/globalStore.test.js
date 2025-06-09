@@ -1,5 +1,6 @@
 import { describe, expect, jest, test } from '@jest/globals'
-import { fromJS, isImmutable } from 'immutable'
+// Use our custom immutable utils
+import { fromJS, isImmutable } from '../src/utils/immutableUtils.js'; // Corrected path
 import { createGlobalStore } from '../src/globalStore.js'
 
 describe('createGlobalStore', () => {

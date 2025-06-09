@@ -3,11 +3,6 @@
   "bugs": {
     "url": "https://github.com/dylarcher/stateman-cli/issues"
   },
-  "dependencies": {
-    "immutable": "^5.1.2",
-    "redux": "^5.0.1",
-    "vanjs-core": "^1.5.5"
-  },
   "description": "A comprehensive, vanilla javascript state management library.",
   "devDependencies": {
     "esbuild": "^0.25.5",
@@ -42,8 +37,8 @@
   },
   "scripts": {
     "build": "node build.js",
-    "build:cjs": "esbuild src/index.js --bundle --outfile=dist/depstate.cjs.js --format=cjs --platform=node --external:redux --external:immutable --external:vanjs-core",
-    "build:esm": "esbuild src/index.js --bundle --outfile=dist/depstate.esm.js --format=esm --platform=browser --external:redux --external:immutable --external:vanjs-core",
+    "build:cjs": "esbuild src/index.js --bundle --outfile=dist/depstate.cjs.js --format=cjs --platform=node",
+    "build:esm": "esbuild src/index.js --bundle --outfile=dist/depstate.esm.js --format=esm --platform=browser",
     "docs:build": "echo \"Docs build process not yet implemented. Consider using a static site generator like VitePress or Docusaurus.\" && exit 0",
     "docs:dev": "echo \"Docs development server not yet implemented. Consider using a static site generator like VitePress or Docusaurus.\" && exit 0",
     "format": "prettier --write src/**/*.js",

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals'
-import { fromJS } from 'immutable'
+// Use our custom immutable utils
+import { fromJS } from '../src/utils/immutableUtils.js'; // Corrected path
 import applyMiddleware from '../src/applyMiddleware.js'
 import { createGlobalStore } from '../src/globalStore.js'
 import logger from '../src/middleware/logger.js'

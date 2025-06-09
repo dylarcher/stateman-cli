@@ -1,5 +1,6 @@
 import { describe, expect, test } from '@jest/globals'
-import { fromJS } from 'immutable'
+// Use our custom immutable utils
+import { fromJS } from '../src/utils/immutableUtils.js'; // Corrected path
 import applyMiddleware, { compose } from '../src/applyMiddleware.js'
 import { createGlobalStore } from '../src/globalStore.js' // Using the actual global store
 

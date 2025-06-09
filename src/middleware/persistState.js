@@ -1,4 +1,4 @@
-import { fromJS, isImmutable } from "immutable";
+import { fromJS, isImmutable } from "../utils/immutableUtils.js"; // Use custom utils
 
 /**
  * Debounces a function.
@@ -74,7 +74,7 @@ export function persistStateMiddleware({
  * @param {string} config.key - The storage key.
  * @param {object} config.adapter - A storage adapter.
  * @param {function(persistedString: string): object} [config.deserializer=JSON.parse] - Function to deserialize.
- * @returns {Immutable.Map | undefined} The rehydrated state slice (as an Immutable.Map), or undefined if not found/error.
+ * @returns {Map | List | undefined} The rehydrated state slice (as a custom Map/List), or undefined if not found/error.
  */
 export function rehydrateState({ key, adapter, deserializer = JSON.parse }) {
   if (!key || !adapter) {

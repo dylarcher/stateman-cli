@@ -1,4 +1,4 @@
-import van from "vanjs-core";
+import { state, derive, add } from "./customVanUtils.js"; // Import custom utilities
 
 /**
  * @file DOM Binding Utilities for VanJS states.
@@ -24,7 +24,7 @@ export function bindProperty(element, propertyName, scopedState) {
     );
     return;
   }
-  van.derive(() => {
+  derive(() => { // Use custom derive
     element[propertyName] = scopedState.val;
   });
 }
@@ -48,7 +48,7 @@ export function bindAttribute(element, attributeName, scopedState) {
     );
     return;
   }
-  van.derive(() => {
+  derive(() => { // Use custom derive
     if (typeof scopedState.val === "boolean") {
       if (scopedState.val) {
         element.setAttribute(attributeName, "");
@@ -89,7 +89,7 @@ export function bindChildren(parentElement, scopedState) {
     );
     return;
   }
-  van.derive(() => {
+  derive(() => { // Use custom derive
     const newContent = scopedState.val;
     while (parentElement.firstChild) {
       parentElement.removeChild(parentElement.firstChild);
@@ -122,5 +122,5 @@ export function bindChildrenWithVanAdd(parentElement, scopedState) {
     );
     return undefined;
   }
-  return van.add(parentElement, () => scopedState.val);
+  return add(parentElement, () => scopedState.val); // Use custom add
 }
