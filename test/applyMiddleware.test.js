@@ -1,6 +1,6 @@
-import { describe, expect, test } from '@jest/globals'
-// Use our custom immutable utils
-import { fromJS } from '../src/utils/immutableUtils.js'; // Corrected path
+import { describe, it as test } from 'node:test';
+import assert from 'node:assert';
+import { fromJS } from 'immutable'
 import applyMiddleware, { compose } from '../src/applyMiddleware.js'
 import { createGlobalStore } from '../src/globalStore.js' // Using the actual global store
 
@@ -10,17 +10,17 @@ describe('compose', () => {
     const b = next => x => next(x + 'b')
     const c = next => x => next(x + 'c')
     const final = x => x
-    expect(compose(a, b, c)(final)('')).toBe('abc')
-    expect(compose(a, b, c)(x => x + 'd')('')).toBe('abcd')
+    assert.strictEqual(compose(a, b, c)(final)(''), 'abc')
+    assert.strictEqual(compose(a, b, c)(x => x + 'd')(''), 'abcd')
   })
 
   test('returns the identity function if no functions are passed', () => {
-    expect(compose()(1)).toBe(1)
+    assert.strictEqual(compose()(1), 1)
   })
 
   test('returns the single function if only one is passed', () => {
     const fn = x => x * 2
-    expect(compose(fn)(2)).toBe(4)
+    assert.strictEqual(compose(fn)(2), 4)
   })
 })
 
@@ -45,8 +45,8 @@ describe('applyMiddleware', () => {
     const store = createGlobalStore(reducer, initialState, { enhancer: applyMiddleware(testMiddleware) })
     store.dispatch({ type: 'ADD', payload: 5 })
 
-    expect(store.getState().get('value')).toBe(5)
-    expect(middlewareLog).toEqual(['before: ADD', 'after: ADD'])
+    assert.strictEqual(store.getState().get('value'), 5)
+    assert.deepStrictEqual(middlewareLog, ['before: ADD', 'after: ADD'])
   })
 
   test('should pass correct API to middleware', () => {
@@ -59,9 +59,9 @@ describe('applyMiddleware', () => {
     const store = createGlobalStore(reducer, initialState, { enhancer: applyMiddleware(testMiddleware) })
     store.dispatch({ type: 'ADD' })
 
-    expect(capturedStoreAPI.getState).toBeInstanceOf(Function)
-    expect(capturedStoreAPI.dispatch).toBeInstanceOf(Function)
-    expect(capturedStoreAPI.getState().get('value')).toBe(1) // dispatch was called
+    assert(capturedStoreAPI.getState instanceof Function)
+    assert(capturedStoreAPI.dispatch instanceof Function)
+    assert.strictEqual(capturedStoreAPI.getState().get('value'), 1) // dispatch was called
   })
 
   test('middleware should be able to dispatch actions', () => {
@@ -76,7 +76,7 @@ describe('applyMiddleware', () => {
 
     const store = createGlobalStore(reducer, initialState, { enhancer: applyMiddleware(testMiddleware) })
     store.dispatch({ type: 'DOUBLE_ADD', payload: 3 })
-    expect(store.getState().get('value')).toBe(6)
+    assert.strictEqual(store.getState().get('value'), 6)
   })
 
   test('should throw if dispatching during middleware construction', () => {
@@ -84,7 +84,7 @@ describe('applyMiddleware', () => {
       store.dispatch({ type: 'FAIL' }) // Dispatching too early
       return next => action => next(action)
     }
-    expect(() => createGlobalStore(reducer, initialState, { enhancer: applyMiddleware(problematicMiddleware) }))
-      .toThrow(/Dispatching while constructing your middleware is not allowed/)
+    assert.throws(() => createGlobalStore(reducer, initialState, { enhancer: applyMiddleware(problematicMiddleware) }),
+      /Dispatching while constructing your middleware is not allowed/)
   })
 })

@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals'
-// Use our custom immutable utils
-import { fromJS } from '../src/utils/immutableUtils.js'; // Corrected path
+import { afterEach, beforeEach, describe, it as test, mock } from 'node:test';
+import assert from 'node:assert';
+import { fromJS } from 'immutable'
 import applyMiddleware from '../src/applyMiddleware.js'
 import { createGlobalStore } from '../src/globalStore.js'
 import logger from '../src/middleware/logger.js'
@@ -16,11 +16,11 @@ describe('loggerMiddleware', () => {
   }
 
   const mockConsole = {
-    log: jest.fn(),
-    info: jest.fn(),
-    group: jest.fn(),
-    groupEnd: jest.fn(),
-    error: jest.fn(),
+    log: mock.fn(),
+    info: mock.fn(),
+    group: mock.fn(),
+    groupEnd: mock.fn(),
+    error: mock.fn(),
   }
   let originalConsole
 
@@ -32,26 +32,26 @@ describe('loggerMiddleware', () => {
 
   afterEach(() => {
     global.console = originalConsole // Restore original console
-    jest.clearAllMocks()
+    Object.values(mockConsole).forEach(mockFn => mockFn.mock.resetCalls());
   })
 
   test('should log action and state', () => {
     store.dispatch({ type: 'TEST_ACTION', payload: 'world' })
-    expect(mockConsole.group).toHaveBeenCalledWith('TEST_ACTION')
-    expect(mockConsole.info).toHaveBeenCalledWith('dispatching', { type: 'TEST_ACTION', payload: 'world' })
-    // Check if toJS was called by checking the structure of the logged state
-    const loggedState = mockConsole.log.mock.calls.find(call => call[0] === 'next state')
-    expect(loggedState[1]).toEqual({ message: 'world' })
-    expect(mockConsole.groupEnd).toHaveBeenCalled()
+    assert(mockConsole.group.mock.calls.some(call => call.arguments[0] === 'TEST_ACTION'));
+    assert(mockConsole.info.mock.calls.some(call => call.arguments[0] === 'dispatching' && JSON.stringify(call.arguments[1]) === JSON.stringify({ type: 'TEST_ACTION', payload: 'world' })));
+    const loggedStateCall = mockConsole.log.mock.calls.find(call => call.arguments[0] === 'next state');
+    assert(loggedStateCall, 'log call for "next state" not found');
+    assert.deepStrictEqual(loggedStateCall.arguments[1], { message: 'world' });
+    assert(mockConsole.groupEnd.mock.calls.length > 0);
   })
 
   test('should handle actions with no type', () => {
     // Redux will throw if action.type is undefined.
     // We test that the logger still groups with 'Unknown Action' before the error occurs.
-    expect(() => store.dispatch({ payload: 'something' })).toThrow(/Actions may not have an undefined "type" property/)
-    expect(mockConsole.group).toHaveBeenCalledWith('Unknown Action')
+    assert.throws(() => store.dispatch({ payload: 'something' }), /Actions may not have an undefined "type" property/);
+    assert(mockConsole.group.mock.calls.some(call => call.arguments[0] === 'Unknown Action'));
     // console.info would also have been called.
-    expect(mockConsole.info).toHaveBeenCalledWith('dispatching', { payload: 'something' })
+    assert(mockConsole.info.mock.calls.some(call => call.arguments[0] === 'dispatching' && JSON.stringify(call.arguments[1]) === JSON.stringify({ payload: 'something' })));
     // groupEnd might not be called if an error is thrown before it.
   })
 
@@ -67,8 +67,9 @@ describe('loggerMiddleware', () => {
     }
     const next = action => action
     logger(mockStore)(next)({ type: 'PLAIN_ACTION' })
-    const loggedState = mockConsole.log.mock.calls.find(call => call[0] === 'next state')
-    expect(loggedState[1]).toEqual({ message: 'plain new' })
+    const loggedStateCall = mockConsole.log.mock.calls.find(call => call.arguments[0] === 'next state');
+    assert(loggedStateCall, 'log call for "next state" not found');
+    assert.deepStrictEqual(loggedStateCall.arguments[1], { message: 'plain new' });
   })
 
   test('should catch and log errors if getState fails during logging', () => {
@@ -86,8 +87,8 @@ describe('loggerMiddleware', () => {
     // We call the logger directly to isolate its behavior when getState throws
     logger(errorStore)(next)({ type: 'ANY_ACTION' })
 
-    expect(mockConsole.error).toHaveBeenCalledWith('Error getting state for logger:', expect.any(Error))
+    assert(mockConsole.error.mock.calls.some(call => call.arguments[0] === 'Error getting state for logger:' && call.arguments[1] instanceof Error));
     // Also check that it logs the raw state attempt
-    expect(mockConsole.log).toHaveBeenCalledWith('next state (raw)', '[Error retrieving state]')
+    assert(mockConsole.log.mock.calls.some(call => call.arguments[0] === 'next state (raw)' && call.arguments[1] === '[Error retrieving state]'));
   })
 })

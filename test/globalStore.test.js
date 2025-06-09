@@ -1,6 +1,6 @@
-import { describe, expect, jest, test } from '@jest/globals'
-// Use our custom immutable utils
-import { fromJS, isImmutable } from '../src/utils/immutableUtils.js'; // Corrected path
+import { describe, it as test, mock, beforeEach, afterEach } from 'node:test';
+import assert from 'node:assert';
+import { fromJS, isImmutable } from 'immutable'
 import { createGlobalStore } from '../src/globalStore.js'
 
 describe('createGlobalStore', () => {
@@ -18,8 +18,8 @@ describe('createGlobalStore', () => {
 
   test('should create a store and return initial state', () => {
     const store = createGlobalStore(reducer, initialState)
-    expect(isImmutable(store.getState())).toBe(true)
-    expect(store.getState().toJS()).toEqual({ counter: 0, user: null })
+    assert(isImmutable(store.getState()))
+    assert.deepStrictEqual(store.getState().toJS(), { counter: 0, user: null })
   })
 
   test('should handle undefined initial state by letting reducer define it', () => {
@@ -31,8 +31,8 @@ describe('createGlobalStore', () => {
       return state
     }
     const store = createGlobalStore(reducerWithOwnInitial)
-    expect(isImmutable(store.getState())).toBe(true)
-    expect(store.getState().get('message')).toBe("default initial")
+    assert(isImmutable(store.getState()))
+    assert.strictEqual(store.getState().get('message'), "default initial")
   })
 
   test('should dispatch actions and update state immutably', () => {
@@ -41,39 +41,39 @@ describe('createGlobalStore', () => {
 
     store.dispatch({ type: 'INCREMENT' })
     const stateAfterIncrement = store.getState()
-    expect(stateAfterIncrement.get('counter')).toBe(1)
-    expect(isImmutable(stateAfterIncrement)).toBe(true)
-    expect(originalState.get('counter')).toBe(0) // Original state should not have changed
-    expect(stateAfterIncrement).not.toBe(originalState) // Should be a new immutable instance
+    assert.strictEqual(stateAfterIncrement.get('counter'), 1)
+    assert(isImmutable(stateAfterIncrement))
+    assert.strictEqual(originalState.get('counter'), 0) // Original state should not have changed
+    assert.notStrictEqual(stateAfterIncrement, originalState) // Should be a new immutable instance
 
     store.dispatch({ type: 'SET_USER', payload: { name: 'Test User' } })
     const stateAfterSetUser = store.getState()
-    expect(stateAfterSetUser.getIn(['user', 'name'])).toBe('Test User')
-    expect(isImmutable(stateAfterSetUser.get('user'))).toBe(true)
-    expect(stateAfterIncrement.get('user')).toBe(null) // State after increment should not have user
-    expect(stateAfterSetUser).not.toBe(stateAfterIncrement)
+    assert.strictEqual(stateAfterSetUser.getIn(['user', 'name']), 'Test User')
+    assert(isImmutable(stateAfterSetUser.get('user')))
+    assert.strictEqual(stateAfterIncrement.get('user'), null) // State after increment should not have user
+    assert.notStrictEqual(stateAfterSetUser, stateAfterIncrement)
   })
 
   test('should notify subscribers on state change', () => {
     const store = createGlobalStore(reducer, initialState)
-    const listener = jest.fn()
+    const listener = mock.fn()
 
     const unsubscribe = store.subscribe(listener)
-    expect(listener).not.toHaveBeenCalled()
+    assert.strictEqual(listener.mock.calls.length, 0)
 
     store.dispatch({ type: 'INCREMENT' })
-    expect(listener).toHaveBeenCalledTimes(1)
+    assert.strictEqual(listener.mock.calls.length, 1)
 
     store.dispatch({ type: 'SET_USER', payload: { name: 'Another User' } })
-    expect(listener).toHaveBeenCalledTimes(2)
+    assert.strictEqual(listener.mock.calls.length, 2)
 
     unsubscribe()
     store.dispatch({ type: 'INCREMENT' })
-    expect(listener).toHaveBeenCalledTimes(2) // Should not be called after unsubscribe
+    assert.strictEqual(listener.mock.calls.length, 2) // Should not be called after unsubscribe
   })
 
   test('should throw error if initial state is not immutable', () => {
-    expect(() => createGlobalStore(reducer, { counter: 0 })).toThrow('Initial state must be an Immutable.js structure if provided.')
+    assert.throws(() => createGlobalStore(reducer, { counter: 0 }), /Initial state must be an Immutable.js structure if provided\./)
   })
 
   test('should throw error if reducer returns non-immutable state', () => {
@@ -84,7 +84,7 @@ describe('createGlobalStore', () => {
       return state
     }
     const store = createGlobalStore(faultyReducer, initialState)
-    expect(() => store.dispatch({ type: 'FAULTY_ACTION' })).toThrow('Reducer must return an Immutable.js structure.')
+    assert.throws(() => store.dispatch({ type: 'FAULTY_ACTION' }), /Reducer must return an Immutable.js structure\./)
   })
 })
 
@@ -112,57 +112,58 @@ describe('createGlobalStore with ergonomic actions', () => {
 
   beforeEach(() => {
     // Spy on console.warn before each test in this describe block
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => { })
+    consoleWarnSpy = mock.method(console, 'warn', () => { })
   })
 
   afterEach(() => {
     // Restore console.warn after each test
-    consoleWarnSpy.mockRestore()
+    consoleWarnSpy.mock.restore()
   })
 
   test('should attach action dispatchers to store.actions', () => {
     const store = createGlobalStore(testReducer, initial, { actions: actionsConfig })
-    expect(store.actions).toBeDefined()
-    expect(typeof store.actions.increment).toBe('function')
-    expect(typeof store.actions.setMessage).toBe('function')
+    assert(store.actions)
+    assert.strictEqual(typeof store.actions.increment, 'function')
+    assert.strictEqual(typeof store.actions.setMessage, 'function')
   })
 
   test('store.actions.actionName() should dispatch the action and update state', () => {
     const store = createGlobalStore(testReducer, initial, { actions: actionsConfig })
 
     store.actions.increment(5)
-    expect(store.getState().get('counter')).toBe(5)
+    assert.strictEqual(store.getState().get('counter'), 5)
 
     store.actions.setMessage('Hello Actions')
-    expect(store.getState().get('message')).toBe('Hello Actions')
+    assert.strictEqual(store.getState().get('message'), 'Hello Actions')
   })
 
   test('store.actions.actionName() should use default parameters of action creator', () => {
     const store = createGlobalStore(testReducer, initial, { actions: actionsConfig })
     store.actions.increment() // No amount, should default to 1
-    expect(store.getState().get('counter')).toBe(1)
+    assert.strictEqual(store.getState().get('counter'), 1)
   })
 
   test('should not create action dispatcher for non-function properties in actions config', () => {
     const store = createGlobalStore(testReducer, initial, { actions: actionsConfig })
 
-    expect(store.actions.invalidAction).toBeUndefined()
-    expect(consoleWarnSpy).toHaveBeenCalledWith("Action creator for 'invalidAction' is not a function and will be ignored.")
+    assert.strictEqual(typeof store.actions.invalidAction, 'undefined')
+    assert.strictEqual(consoleWarnSpy.mock.calls.length, 1)
+    assert.deepStrictEqual(consoleWarnSpy.mock.calls[0].arguments, ["Action creator for 'invalidAction' is not a function and will be ignored."])
   })
 
   test('store.actions should be an empty object if no actions config is provided', () => {
     const store = createGlobalStore(testReducer, initial) // No options object
-    expect(store.actions).toEqual({})
+    assert.deepStrictEqual(store.actions, {})
 
     const storeWithOptions = createGlobalStore(testReducer, initial, {}) // Empty options object
-    expect(storeWithOptions.actions).toEqual({})
+    assert.deepStrictEqual(storeWithOptions.actions, {})
   })
 
   test('store.actions should be an empty object if actions config is null or not an object', () => {
     let store = createGlobalStore(testReducer, initial, { actions: null })
-    expect(store.actions).toEqual({})
+    assert.deepStrictEqual(store.actions, {})
 
     store = createGlobalStore(testReducer, initial, { actions: "not_an_object" })
-    expect(store.actions).toEqual({})
+    assert.deepStrictEqual(store.actions, {})
   })
 })

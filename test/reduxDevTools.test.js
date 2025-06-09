@@ -1,14 +1,23 @@
-/**
- * @jest-environment jsdom
- */
-import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals'
-// Use our custom immutable utils
-import { fromJS, Map as CustomMap, List as CustomList } from '../src/utils/immutableUtils.js';
-import applyMiddleware from '../src/applyMiddleware.js' // To test enhancer composition
-import { createGlobalStore } from '../src/globalStore.js'
+import { afterEach, beforeEach, describe, it as test, mock } from 'node:test';
+import assert from 'node:assert';
+import { fromJS, Map as ImmutableMap } from 'immutable';
+import applyMiddleware from '../src/applyMiddleware.js'; // To test enhancer composition
+import { createGlobalStore } from '../src/globalStore.js';
+
+// Mocking window for Node.js environment
+let originalGlobalWindow;
+
+beforeEach(() => {
+  originalGlobalWindow = global.window;
+  global.window = {};
+});
+
+afterEach(() => {
+  global.window = originalGlobalWindow;
+});
 
 describe('Redux DevTools Integration', () => {
-  const initialState = fromJS({ counter: 0 })
+  const initialState = fromJS({ counter: 0 });
   const reducer = (state = initialState, action) => {
     switch (action.type) {
       case 'INCREMENT':
@@ -20,109 +29,83 @@ describe('Redux DevTools Integration', () => {
     }
   }
 
-  let mockDevToolsExtensionCompose
-  // let mockDevToolsInstance; // Not directly used now with composeEnhancers focus
-  let originalWindowDevToolsCompose
-  // let originalWindowDevToolsExtension; // Not directly used
+  let mockDevToolsExtensionCompose;
+  let originalWindowDevToolsCompose;
 
   beforeEach(() => {
-    // mockDevToolsInstance = { ... }; // Kept for reference if needed later
-
-    // Mock for window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-    mockDevToolsExtensionCompose = jest.fn().mockImplementation(optionsPassedToCompose => {
-      // This mock needs to return an enhancer composer.
-      // If it receives an argument (the app's enhancer like applyMiddleware),
-      // it should return a function that composes that enhancer.
-      // If it receives no arguments, it returns a basic enhancer (like (createStore) => ...).
-      return (appEnhancer) => { // appEnhancer is what createGlobalStore passes (e.g., result of applyMiddleware)
+    mockDevToolsExtensionCompose = mock.fn((optionsPassedToCompose) => {
+      return (appEnhancer) => {
         if (appEnhancer) {
           return (createStore) => (reducer, initialState) => {
-            // This simulates composing appEnhancer with what DevTools would do.
-            // For testing, we just ensure appEnhancer is part of the chain.
-            return appEnhancer(createStore)(reducer, initialState)
-          }
+            return appEnhancer(createStore)(reducer, initialState);
+          };
         }
-        // If no appEnhancer, DevTools is the only enhancer.
         return (createStore) => (reducer, initialState) => {
-          return createStore(reducer, initialState)
-        }
-      }
-    })
+          return createStore(reducer, initialState);
+        };
+      };
+    });
 
-    originalWindowDevToolsCompose = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ = mockDevToolsExtensionCompose
-
-    // originalWindowDevToolsExtension = window.__REDUX_DEVTOOLS_EXTENSION__;
-    // window.__REDUX_DEVTOOLS_EXTENSION__ = { connect: jest.fn(() => mockDevToolsInstance) };
-  })
+    originalWindowDevToolsCompose = global.window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__;
+    global.window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ = mockDevToolsExtensionCompose;
+  });
 
   afterEach(() => {
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ = originalWindowDevToolsCompose
-    // window.__REDUX_DEVTOOLS_EXTENSION__ = originalWindowDevToolsExtension;
-    jest.clearAllMocks()
-  })
+    global.window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ = originalWindowDevToolsCompose;
+    mockDevToolsExtensionCompose.mock.resetCalls();
+  });
 
   test('should use REDUX_DEVTOOLS_EXTENSION_COMPOSE__ if available', () => {
-    createGlobalStore(reducer, initialState)
-    expect(mockDevToolsExtensionCompose).toHaveBeenCalled()
-  })
+    createGlobalStore(reducer, initialState);
+    assert(mockDevToolsExtensionCompose.mock.calls.length > 0, 'DevTools compose function was not called');
+  });
 
   test('should pass serialize options for Immutable.js to DevTools', () => {
-    createGlobalStore(reducer, initialState)
-    expect(mockDevToolsExtensionCompose).toHaveBeenCalledWith(
-      expect.objectContaining({
-        serialize: expect.objectContaining({
-          // createGlobalStore passes an object { Map: CustomMap, List: CustomList } here
-          immutable: expect.objectContaining({
-            Map: CustomMap,
-            List: CustomList
-          }),
-          replacer: expect.any(Function)
-        })
-      })
-    )
-    // Test the replacer function from the actual call
-    const options = mockDevToolsExtensionCompose.mock.calls[0][0]
-    const replacer = options.serialize.replacer
-    const immutableData = fromJS({ a: 1 })
-    expect(replacer(null, immutableData)).toEqual({ a: 1 })
-    expect(replacer(null, "string")).toBe("string")
-  })
+    createGlobalStore(reducer, initialState);
+    assert(mockDevToolsExtensionCompose.mock.calls.length > 0, 'DevTools compose function was not called');
+    const callArgs = mockDevToolsExtensionCompose.mock.calls[0].arguments;
+    assert(callArgs.length > 0, 'DevTools compose function was called without arguments');
+    const options = callArgs[0];
+    assert(options && typeof options === 'object', 'Options were not passed or not an object');
+    assert(options.serialize && typeof options.serialize === 'object', 'Serialize option not found or not an object');
+    assert.strictEqual(options.serialize.immutable, ImmutableMap, 'Immutable.js Map not passed to serialize options');
+    assert.strictEqual(typeof options.serialize.replacer, 'function', 'Replacer function not passed to serialize options');
+
+    const replacer = options.serialize.replacer;
+    const immutableData = fromJS({ a: 1 });
+    assert.deepStrictEqual(replacer(null, immutableData), { a: 1 });
+    assert.strictEqual(replacer(null, "string"), "string");
+  });
 
   test('should correctly compose DevTools enhancer with other enhancers', () => {
-    const mockMiddlewareFn = jest.fn(store => next => action => next(action))
-    const appEnhancer = applyMiddleware(mockMiddlewareFn)
+    const mockMiddlewareFn = mock.fn(store => next => action => next(action));
+    const appEnhancer = applyMiddleware(mockMiddlewareFn);
 
-    const store = createGlobalStore(reducer, initialState, { enhancer: appEnhancer })
-    // The mockDevToolsExtensionCompose should have been called with options,
-    // and then its returned function should have been called with appEnhancer.
-    expect(mockDevToolsExtensionCompose).toHaveBeenCalledWith(expect.objectContaining({ serialize: expect.any(Object) }))
+    const store = createGlobalStore(reducer, initialState, { enhancer: appEnhancer });
+    assert(mockDevToolsExtensionCompose.mock.calls.length > 0, 'DevTools compose was not called');
+    const composeArgs = mockDevToolsExtensionCompose.mock.calls[0].arguments;
+    assert(composeArgs[0] && typeof composeArgs[0].serialize === 'object', 'Serialize options not passed to compose');
 
-    // To verify that appEnhancer (applyMiddleware) was indeed part of the composed enhancer:
-    store.dispatch({ type: 'INCREMENT' }) // Dispatch an action
-    expect(mockMiddlewareFn).toHaveBeenCalled() // Middleware from appEnhancer should have run
-  })
+    store.dispatch({ type: 'INCREMENT' });
+    assert(mockMiddlewareFn.mock.calls.length > 0, 'Middleware function was not called');
+  });
 
   test('should correctly apply DevTools enhancer if no other enhancer is present', () => {
-    createGlobalStore(reducer, initialState, {}) // Empty options, so no appEnhancer
-    expect(mockDevToolsExtensionCompose).toHaveBeenCalledWith(expect.objectContaining({ serialize: expect.any(Object) }))
-    // Our mock for composeEnhancers returns a function that takes createStore.
-    // And that function, when called, returns the store.
-    // Hard to test further without actual DevTools or more complex store mock.
-    // The main thing is that composeEnhancers is called.
-  })
+    createGlobalStore(reducer, initialState, {}); // Empty options, so no appEnhancer
+    assert(mockDevToolsExtensionCompose.mock.calls.length > 0, 'DevTools compose was not called');
+    const composeArgs = mockDevToolsExtensionCompose.mock.calls[0].arguments;
+    assert(composeArgs[0] && typeof composeArgs[0].serialize === 'object', 'Serialize options not passed to compose');
+  });
 
   test('should function correctly if DevTools extension is not available', () => {
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ = undefined
-    // window.__REDUX_DEVTOOLS_EXTENSION__ = undefined; // Not needed for this test path
+    global.window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ = undefined;
 
-    let store
-    expect(() => {
-      // Pass undefined as options, or options without enhancer
-      store = createGlobalStore(reducer, initialState, undefined)
-    }).not.toThrow()
+    let store;
+    assert.doesNotThrow(() => {
+      store = createGlobalStore(reducer, initialState, undefined);
+    });
 
-    store.dispatch({ type: 'INCREMENT' })
-    expect(store.getState().get('counter')).toBe(1)
-  })
+    store.dispatch({ type: 'INCREMENT' });
+    assert.strictEqual(store.getState().get('counter'), 1);
+  });
 })
