@@ -9,7 +9,7 @@
     "esbuild": "^0.25.5",
     "eslint": "9.28.0",
     "jsdom": "^24.1.0",
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.0",
     "yargs": "18.0.0"
   },
   "exports": {
